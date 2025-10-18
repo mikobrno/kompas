@@ -1,6 +1,6 @@
 import { useEffect, useState, type RefObject } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { LogOut, Settings, Moon, Sun, Users, Search, Plus } from 'lucide-react';
+import { LogOut, Settings, Moon, Sun, Users, Search, Plus, ChevronsUpDown } from 'lucide-react';
 import { BrandLogo } from '../Brand/BrandLogo';
 
 interface HeaderProps {
@@ -10,16 +10,19 @@ interface HeaderProps {
   onOpenAdmin?: () => void;
   onAddCategory?: () => void;
   searchInputRef?: RefObject<HTMLInputElement>;
+  onToggleCollapseAll?: () => void;
+  collapseState?: 'none' | 'collapsed' | 'expanded';
+  searchResetToken?: number;
 }
 
-export const Header = ({ searchQuery, onSearchChange, onOpenSettings, onOpenAdmin, onAddCategory, searchInputRef }: HeaderProps) => {
+export const Header = ({ searchQuery, onSearchChange, onOpenSettings, onOpenAdmin, onAddCategory, searchInputRef, onToggleCollapseAll, collapseState = 'none', searchResetToken = 0 }: HeaderProps) => {
   const { profile, impersonatedUserId, clearImpersonation, signOut, updateProfile } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const [searchValue, setSearchValue] = useState(searchQuery);
 
   useEffect(() => {
     setSearchValue(searchQuery);
-  }, [searchQuery]);
+  }, [searchQuery, searchResetToken]);
 
   useEffect(() => {
     const id = setTimeout(() => onSearchChange(searchValue), 250);
@@ -31,6 +34,25 @@ export const Header = ({ searchQuery, onSearchChange, onOpenSettings, onOpenAdmi
     await updateProfile({ theme: newTheme });
     document.documentElement.classList.toggle('dark');
   };
+
+  const collapseToggleTitle = collapseState === 'collapsed'
+    ? 'Rozbalit všechny kategorie'
+    : collapseState === 'expanded'
+      ? 'Vrátit původní zobrazení'
+      : 'Sbalit všechny kategorie';
+
+  const collapseButtonStateClass = collapseState === 'collapsed'
+    ? 'border-[#f05a28]/60 bg-[#f05a28]/15 text-[#f05a28] dark:border-[#ff8b5c]/60 dark:bg-[#ff8b5c]/20 dark:text-[#ff8b5c]'
+    : collapseState === 'expanded'
+      ? 'border-emerald-400/60 bg-emerald-100/60 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-700 dark:border-emerald-400/60 dark:bg-emerald-500/25 dark:text-emerald-200 dark:hover:bg-emerald-500/20'
+      : 'border-[#f05a28]/20 bg-white/70 text-slate-500 hover:bg-white/90 hover:text-[#f05a28] dark:border-slate-600/60 dark:bg-slate-800/80 dark:hover:bg-slate-800 dark:text-slate-300 dark:hover:text-[#ff8b5c]';
+
+  const collapseIconRotation = collapseState === 'collapsed'
+    ? 'rotate-90'
+    : collapseState === 'expanded'
+      ? '-rotate-90'
+      : '';
+
 
   return (
     <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
@@ -60,6 +82,17 @@ export const Header = ({ searchQuery, onSearchChange, onOpenSettings, onOpenAdmi
             </label>
             <div className="relative w-full max-w-lg">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#f05a28] dark:text-[#ff8b5c]" />
+              {onToggleCollapseAll && (
+                <button
+                  type="button"
+                  onClick={onToggleCollapseAll}
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full border transition focus:outline-none focus:ring-2 focus:ring-[#f05a28]/50 ${collapseButtonStateClass}`}
+                  title={collapseToggleTitle}
+                  aria-label={collapseToggleTitle}
+                >
+                  <ChevronsUpDown className={`w-4 h-4 transition-transform ${collapseIconRotation}`} />
+                </button>
+              )}
               <input
                 id="dashboard-search"
                 type="search"
@@ -67,7 +100,7 @@ export const Header = ({ searchQuery, onSearchChange, onOpenSettings, onOpenAdmi
                 onChange={(event) => setSearchValue(event.target.value)}
                 placeholder="Hledat v Kompasu"
                 ref={searchInputRef}
-                className="w-full rounded-full border border-[#f05a28]/40 bg-white/70 pl-10 pr-4 py-2 text-sm text-slate-900 placeholder-slate-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#f05a28]/70 dark:border-slate-600/50 dark:bg-slate-800/80 dark:text-white dark:placeholder-slate-400"
+                className="w-full rounded-full border border-[#f05a28]/40 bg-white/70 pl-10 pr-12 py-2 text-sm text-slate-900 placeholder-slate-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#f05a28]/70 dark:border-slate-600/50 dark:bg-slate-800/80 dark:text-white dark:placeholder-slate-400"
               />
             </div>
           </div>
@@ -121,7 +154,6 @@ export const Header = ({ searchQuery, onSearchChange, onOpenSettings, onOpenAdmi
                 onClick={() => setShowMenu(!showMenu)}
                 className="flex items-center space-x-2 p-2 rounded-lg border border-white/20 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition"
                 aria-haspopup="menu"
-                aria-expanded={showMenu}
                 aria-label="Otevřít uživatelské menu"
               >
                 <div className="w-8 h-8 rounded-full border border-[#f05a28]/40 bg-white/40 text-[#f05a28] flex items-center justify-center">

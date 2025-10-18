@@ -37,6 +37,8 @@ interface CategoryCardProps {
   onRefresh: () => void;
   onEditLink: (linkId: string) => void;
   onShareLink: (linkId: string, linkName: string) => void;
+  forceExpanded?: boolean;
+  forceCollapsed?: boolean;
 }
 
 export const CategoryCard = ({
@@ -48,6 +50,8 @@ export const CategoryCard = ({
   onRefresh,
   onEditLink,
   onShareLink,
+  forceExpanded = false,
+  forceCollapsed = false,
 }: CategoryCardProps) => {
   const { user, profile } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
@@ -55,6 +59,7 @@ export const CategoryCard = ({
   const [dragLinkId, setDragLinkId] = useState<string | null>(null);
   const [linksLocal, setLinksLocal] = useState<Link[]>(category.links);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const collapsed = forceExpanded ? false : forceCollapsed ? true : isCollapsed;
 
   const accent = useMemo(() => normalizeHexColor(category.color_hex), [category.color_hex]);
   const cardStyle = useMemo(() => ({
@@ -125,6 +130,9 @@ export const CategoryCard = ({
   };
 
   const toggleCollapse = () => {
+    if (forceCollapsed || forceExpanded) {
+      return;
+    }
     setIsCollapsed((prev) => {
       const next = !prev;
       if (typeof window !== 'undefined') {
@@ -213,12 +221,11 @@ export const CategoryCard = ({
           type="button"
           onClick={toggleCollapse}
           className="group flex items-center gap-3 flex-1 pr-4 py-2 rounded-xl border border-transparent bg-transparent text-left transition hover:border-white/40 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/40 dark:hover:bg-slate-700/50"
-          aria-label={isCollapsed ? 'Rozbalit kategorii' : 'Sbalit kategorii'}
-          aria-expanded={isCollapsed ? 'false' : 'true'}
+          aria-label={collapsed ? 'Rozbalit kategorii' : 'Sbalit kategorii'}
         >
           <span className="flex items-center justify-center w-7 h-7 rounded-lg border border-white/30 bg-white/25 backdrop-blur dark:border-slate-500/40 dark:bg-slate-700/60">
             <ChevronDown
-              className={`w-4 h-4 transition-transform ${isCollapsed ? '-rotate-90' : ''}`}
+              className={`w-4 h-4 transition-transform ${collapsed ? '-rotate-90' : ''}`}
               style={accentIconStyle}
             />
           </span>
@@ -307,9 +314,9 @@ export const CategoryCard = ({
         )}
       </div>
 
-      {!isCollapsed && (
+      {!collapsed && (
         <div className="p-5 space-y-3">
-        {linksLocal.filter(l => !l.is_archived).length === 0 ? (
+          {linksLocal.filter(l => !l.is_archived).length === 0 ? (
           <p className="text-center text-slate-500 dark:text-slate-400 py-8 text-sm">
             Žádné odkazy
           </p>

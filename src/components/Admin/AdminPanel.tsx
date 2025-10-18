@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
-import { X, Users, Trash2, Undo2, Save, Link as LinkIcon, Merge, Shield } from 'lucide-react';
+import { ChangeEvent, useEffect, useMemo, useState } from 'react';
+import { X, Users, Trash2, Undo2, Save, Link as LinkIcon, Merge, Shield, Download, Upload } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { DEFAULT_CATEGORY_COLOR } from '../../lib/colors';
+import { generateBookmarksHtml, parseBookmarksHtml, type BookmarkCategory } from '../../lib/bookmarkExport';
 
 interface User {
   id: string;
@@ -32,8 +34,8 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
-  useAuth();
-  const [activeTab, setActiveTab] = useState<'users' | 'roles' | 'groups' | 'tags' | 'archive'>('users');
+  const { profile } = useAuth();
+  const [activeTab, setActiveTab] = useState<'users' | 'roles' | 'groups' | 'tags' | 'archive' | 'backup'>('users');
   const [users, setUsers] = useState<User[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [showAddGroup, setShowAddGroup] = useState(false);
@@ -47,6 +49,15 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
   const [mergeSourceId, setMergeSourceId] = useState<string>('');
   const [mergeTargetName, setMergeTargetName] = useState<string>('');
   const [promoteCandidateId, setPromoteCandidateId] = useState('');
+  const [exportOwnerId, setExportOwnerId] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
+  const [importOwnerId, setImportOwnerId] = useState('');
+  const [importHtml, setImportHtml] = useState('');
+  const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [clearBeforeImport, setClearBeforeImport] = useState(false);
+  const [importStats, setImportStats] = useState<{ categories: number; links: number } | null>(null);
   // Odstraněny akce pro seed uživatelů
   // Demo akce odstraněny – panel pracuje jen s reálnými daty
 
@@ -84,6 +95,18 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
     setTags(tagsData || []);
     setArchived(archivedData || []);
   };
+
+  useEffect(() => {
+    if (!users.length) return;
+    if (!exportOwnerId) {
+      const preferred = profile?.id && users.some((u) => u.id === profile.id) ? profile.id : users[0]?.id;
+      if (preferred) setExportOwnerId(preferred);
+    }
+    if (!importOwnerId) {
+      const preferred = profile?.id && users.some((u) => u.id === profile.id) ? profile.id : users[0]?.id;
+      if (preferred) setImportOwnerId(preferred);
+    }
+  }, [users, profile?.id, exportOwnerId, importOwnerId]);
 
   // seedNamedUsers odstraněn
 
@@ -206,6 +229,193 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
     setPromoteCandidateId('');
   };
 
+  const handleExportBookmarks = async () => {
+    if (!exportOwnerId) return;
+    setExporting(true);
+    setExportStatus(null);
+    try {
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('categories')
+        .select('id, name, display_order')
+        .eq('owner_id', exportOwnerId)
+        .eq('is_archived', false)
+        .order('display_order', { ascending: true });
+
+      if (categoriesError) throw categoriesError;
+
+      const categoriesList = categoriesData ?? [];
+      if (!categoriesList.length) {
+        setExportStatus('Vybraný uživatel nemá žádné kategorie k exportu.');
+        return;
+      }
+
+      const categoryIds = categoriesList.map((category) => category.id);
+      const { data: linksData, error: linksError } = await supabase
+        .from('links')
+        .select('category_id, display_name, url, display_order, is_archived')
+        .in('category_id', categoryIds)
+        .eq('is_archived', false)
+        .order('display_order', { ascending: true });
+
+      if (linksError) throw linksError;
+
+      const linksByCategory = new Map<string, { display_name: string; url: string; display_order: number }[]>();
+      (linksData ?? []).forEach((link) => {
+        const entries = linksByCategory.get(link.category_id) || [];
+        entries.push({
+          display_name: link.display_name,
+          url: link.url,
+          display_order: link.display_order,
+        });
+        linksByCategory.set(link.category_id, entries);
+      });
+
+      const bookmarkCategories: BookmarkCategory[] = categoriesList
+        .map((category) => {
+          const links = (linksByCategory.get(category.id) || [])
+            .sort((a, b) => a.display_order - b.display_order)
+            .map((link) => ({
+              title: link.display_name,
+              url: link.url,
+            }));
+          return {
+            name: category.name,
+            links,
+          };
+        })
+        .filter((category) => category.links.length > 0);
+
+      if (!bookmarkCategories.length) {
+        setExportStatus('Nenalezeny žádné aktivní odkazy k exportu.');
+        return;
+      }
+
+      const html = generateBookmarksHtml(bookmarkCategories);
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const downloadLink = document.createElement('a');
+      const owner = users.find((user) => user.id === exportOwnerId);
+      const fallbackName = owner?.full_name || owner?.email || 'export';
+      downloadLink.href = url;
+      downloadLink.download = `stopar-bookmarks-${sanitizeFileName(fallbackName)}.html`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(url);
+      setExportStatus('Soubor s exportem byl připraven. Stahování právě proběhlo.');
+    } catch (err) {
+      console.error('Export záložek selhal:', err);
+      setExportStatus('Export se nezdařil. Zkuste to prosím znovu.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleImportFileSelection = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      setImportHtml(text);
+      setImportStatus(`Načten soubor ${file.name}.`);
+      setImportStats(null);
+    } catch (err) {
+      console.error('Čtení souboru selhalo:', err);
+      setImportStatus('Soubor se nepodařilo načíst.');
+    } finally {
+      event.target.value = '';
+    }
+  };
+
+  const handleImportBookmarks = async () => {
+    if (!importOwnerId) return;
+    if (!importHtml.trim()) {
+      setImportStatus('Nejprve vložte obsah exportu nebo vyberte soubor.');
+      return;
+    }
+
+    setImporting(true);
+    setImportStatus(null);
+    setImportStats(null);
+
+    try {
+      const parsed = parseBookmarksHtml(importHtml);
+      const prepared = parsed
+        .map((category) => ({
+          name: category.name.trim() || 'Nová kategorie',
+          links: category.links
+            .map((link) => ({
+              title: (link.title || link.url || '').trim() || link.url || 'Bez názvu',
+              url: link.url.trim(),
+            }))
+            .filter((link) => !!link.url),
+        }))
+        .filter((category) => category.links.length > 0);
+
+      if (!prepared.length) {
+        setImportStatus('V souboru nebyly nalezeny žádné odkazy.');
+        return;
+      }
+
+      if (clearBeforeImport) {
+        const confirmed = confirm('Opravdu chcete smazat všechny existující kategorie tohoto uživatele?');
+        if (!confirmed) {
+          setImportStatus('Import byl zrušen.');
+          return;
+        }
+        const { error: deleteError } = await supabase
+          .from('categories')
+          .delete()
+          .eq('owner_id', importOwnerId);
+        if (deleteError) throw deleteError;
+      }
+
+      const totalLinks = prepared.reduce((sum, category) => sum + category.links.length, 0);
+
+      for (let idx = 0; idx < prepared.length; idx += 1) {
+        const category = prepared[idx];
+        const { data: insertedCategory, error: categoryError } = await supabase
+          .from('categories')
+          .insert({
+            name: category.name,
+            owner_id: importOwnerId,
+            is_archived: false,
+            display_order: idx,
+            color_hex: DEFAULT_CATEGORY_COLOR,
+          })
+          .select('id')
+          .single();
+
+        if (categoryError || !insertedCategory) throw categoryError;
+
+        const linkPayload = category.links.map((link, linkIdx) => ({
+          category_id: insertedCategory.id,
+          display_name: link.title,
+          url: link.url,
+          display_order: linkIdx,
+          is_archived: false,
+          favicon_url: null,
+        }));
+
+        if (linkPayload.length) {
+          const { error: linksError } = await supabase.from('links').insert(linkPayload);
+          if (linksError) throw linksError;
+        }
+      }
+
+      await loadData();
+      setImportStats({ categories: prepared.length, links: totalLinks });
+      setImportStatus('Import byl úspěšně dokončen.');
+      setImportHtml('');
+      setClearBeforeImport(false);
+    } catch (err) {
+      console.error('Import záložek selhal:', err);
+      setImportStatus('Import se nepodařilo dokončit. Zkontrolujte soubor a zkuste to znovu.');
+    } finally {
+      setImporting(false);
+    }
+  };
+
 
   if (!isOpen) return null;
 
@@ -276,6 +486,16 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
             }`}
           >
             Archiv
+          </button>
+          <button
+            onClick={() => setActiveTab('backup')}
+            className={`flex-1 px-6 py-3 font-medium transition ${
+              activeTab === 'backup'
+                ? 'text-[#f05a28] dark:text-[#ff8b5c] border-b-2 border-[#f05a28] dark:border-[#ff8b5c] bg-white/50 dark:bg-slate-900/40'
+                : 'text-slate-600 dark:text-slate-400 hover:text-[#f05a28] dark:hover:text-[#ff8b5c]'
+            }`}
+          >
+            Export / Import
           </button>
         </div>
 
@@ -673,8 +893,155 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
               ))}
             </div>
           )}
+
+          {activeTab === 'backup' && (
+            <div className="space-y-8">
+              <section className="p-5 rounded-2xl border border-[#f05a28]/20 bg-white/85 dark:bg-slate-900/65 shadow-sm">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="p-2 rounded-xl bg-[#f05a28]/15 dark:bg-[#f05a28]/25 text-[#f05a28] dark:text-[#ff8b5c]">
+                    <Download className="w-5 h-5" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-slate-900 dark:text-white">Export záložek</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      Vygeneruje soubor ve formátu Netscape Bookmark, který lze importovat do prohlížečů i zpět do Stopáře.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-[minmax(0,280px)_auto] items-end">
+                  <label className="flex flex-col gap-2" aria-label="Uživatel pro export">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Uživatel</span>
+                    <select
+                      value={exportOwnerId}
+                      onChange={(event) => setExportOwnerId(event.target.value)}
+                      className="px-3 py-2 rounded-xl border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/40"
+                    >
+                      {users.map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {user.full_name} ({user.email})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <button
+                    onClick={handleExportBookmarks}
+                    className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition ${
+                      exporting
+                        ? 'bg-white/60 text-slate-400 border border-[#f05a28]/20 cursor-not-allowed'
+                        : 'bg-[#f05a28] hover:bg-[#ff7846] text-white shadow'
+                    }`}
+                    disabled={exporting || !exportOwnerId}
+                  >
+                    <Download className="w-4 h-4" aria-hidden="true" />
+                    {exporting ? 'Připravuji…' : 'Stáhnout export'}
+                  </button>
+                </div>
+
+                {exportStatus && (
+                  <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">{exportStatus}</p>
+                )}
+              </section>
+
+              <section className="p-5 rounded-2xl border border-[#f05a28]/20 bg-white/85 dark:bg-slate-900/65 shadow-sm">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="p-2 rounded-xl bg-[#f05a28]/15 dark:bg-[#f05a28]/25 text-[#f05a28] dark:text-[#ff8b5c]">
+                    <Upload className="w-5 h-5" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-slate-900 dark:text-white">Import záložek</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      Načte soubor ve formátu Netscape Bookmark a vytvoří z něj kategorie a odkazy pro vybraného uživatele.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-[minmax(0,280px)_auto] items-start">
+                  <label className="flex flex-col gap-2" aria-label="Uživatel pro import">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Uživatel</span>
+                    <select
+                      value={importOwnerId}
+                      onChange={(event) => setImportOwnerId(event.target.value)}
+                      className="px-3 py-2 rounded-xl border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/40"
+                    >
+                      {users.map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {user.full_name} ({user.email})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <div className="flex flex-col gap-3">
+                    <label className="flex flex-col gap-2">
+                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Obsah exportu</span>
+                      <textarea
+                        value={importHtml}
+                        onChange={(event) => setImportHtml(event.target.value)}
+                        placeholder="Sem můžete vložit obsah bookmark HTML souboru…"
+                        className="w-full min-h-[140px] px-3 py-2 rounded-xl border border-[#f05a28]/25 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/40"
+                      />
+                    </label>
+                    <label className="flex items-center justify-between rounded-xl border border-dashed border-[#f05a28]/30 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 bg-white/70 dark:bg-slate-900/40 cursor-pointer hover:border-[#f05a28]/60 transition">
+                      <span>nebo vyberte soubor (.html)</span>
+                      <input
+                        type="file"
+                        accept=".html,.htm,text/html"
+                        className="hidden"
+                        onChange={handleImportFileSelection}
+                        aria-label="Vybrat soubor s exportem"
+                      />
+                    </label>
+                    <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                      <input
+                        type="checkbox"
+                        checked={clearBeforeImport}
+                        onChange={(event) => setClearBeforeImport(event.target.checked)}
+                        className="w-4 h-4 rounded border border-[#f05a28]/40 text-[#f05a28] focus:ring-[#f05a28]/50"
+                        aria-label="Smazat před importem všechny existující kategorie"
+                      />
+                      Smazat před importem všechny existující kategorie tohoto uživatele
+                    </label>
+                    <button
+                      onClick={handleImportBookmarks}
+                      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition ${
+                        importing
+                          ? 'bg-white/60 text-slate-400 border border-[#f05a28]/20 cursor-not-allowed'
+                          : 'bg-[#f05a28] hover:bg-[#ff7846] text-white shadow'
+                      }`}
+                      disabled={importing || !importOwnerId}
+                    >
+                      <Upload className="w-4 h-4" aria-hidden="true" />
+                      {importing ? 'Importuji…' : 'Importovat'}
+                    </button>
+                  </div>
+                </div>
+
+                {importStatus && (
+                  <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
+                    {importStatus}
+                    {importStats && (
+                      <span className="block mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        Vytvořeno {importStats.categories} kategorií a {importStats.links} odkazů.
+                      </span>
+                    )}
+                  </p>
+                )}
+              </section>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
+};
+
+const sanitizeFileName = (input: string): string => {
+  const normalized = input
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  return normalized || 'export';
 };

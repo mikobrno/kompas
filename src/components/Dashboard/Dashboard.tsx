@@ -71,6 +71,7 @@ export const Dashboard = () => {
   const { user, profile, impersonatedUserId } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResetToken, setSearchResetToken] = useState(0);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showAddLink, setShowAddLink] = useState<string | null>(null);
   const [shareCategoryId, setShareCategoryId] = useState<string | null>(null);
@@ -80,6 +81,7 @@ export const Dashboard = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [editCategory, setEditCategory] = useState<{ id: string; name: string; color_hex: string } | null>(null);
   const [editLinkId, setEditLinkId] = useState<string | null>(null);
+  const [collapseMode, setCollapseMode] = useState<'none' | 'collapsed' | 'expanded'>('none');
   const refreshTimerRef = useRef<number | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -101,6 +103,16 @@ export const Dashboard = () => {
     const handleGlobalKeydown = (event: KeyboardEvent) => {
       if (event.defaultPrevented) return;
 
+      if (event.key === 'Escape') {
+        setSearchQuery('');
+        setSearchResetToken((token) => token + 1);
+        const input = searchInputRef.current;
+        if (input && document.activeElement === input) {
+          input.blur();
+        }
+        return;
+      }
+
       const target = event.target as HTMLElement | null;
       if (target) {
         const tagName = target.tagName.toLowerCase();
@@ -116,14 +128,6 @@ export const Dashboard = () => {
       if (event.key === '/') {
         event.preventDefault();
         focusSearch(true);
-        return;
-      }
-
-      if (event.key === 'Escape') {
-        const input = searchInputRef.current;
-        if (input && document.activeElement === input) {
-          input.blur();
-        }
         return;
       }
 
@@ -149,7 +153,7 @@ export const Dashboard = () => {
 
     window.addEventListener('keydown', handleGlobalKeydown);
     return () => window.removeEventListener('keydown', handleGlobalKeydown);
-  }, []);
+  }, [searchQuery]);
 
   // Throttle pro refresh, aby se více změn sloučilo do jedné
   const scheduleRefresh = useCallback(() => {
@@ -243,6 +247,14 @@ export const Dashboard = () => {
     });
     setCategories(processed);
   }, [user, previewUserId]);
+
+  const toggleCollapseAll = useCallback(() => {
+    setCollapseMode((prev) => {
+      if (prev === 'none') return 'collapsed';
+      if (prev === 'collapsed') return 'expanded';
+      return 'none';
+    });
+  }, []);
 
   useEffect(() => {
     loadCategories();
@@ -342,6 +354,9 @@ export const Dashboard = () => {
         onOpenSettings={() => setShowSettings(true)}
         onOpenAdmin={profile?.role === 'admin' ? () => setShowAdmin(true) : undefined}
         onAddCategory={() => setShowAddCategory(true)}
+  onToggleCollapseAll={toggleCollapseAll}
+  collapseState={collapseMode}
+        searchResetToken={searchResetToken}
         searchInputRef={searchInputRef}
       />
 
@@ -380,6 +395,8 @@ export const Dashboard = () => {
                       onRefresh={() => setRefreshKey((k: number) => k + 1)}
                       onEditLink={(id: string) => setEditLinkId(id)}
                       onShareLink={(linkId: string, linkName: string) => setShareLink({ id: linkId, name: linkName })}
+                      forceExpanded={!!searchQuery || collapseMode === 'expanded'}
+                      forceCollapsed={collapseMode === 'collapsed'}
                     />
                     <button
                       onClick={() => setShowAddLink(category.id)}
@@ -421,6 +438,8 @@ export const Dashboard = () => {
                       onRefresh={() => setRefreshKey((k: number) => k + 1)}
                       onEditLink={(id: string) => setEditLinkId(id)}
                       onShareLink={(linkId: string, linkName: string) => setShareLink({ id: linkId, name: linkName })}
+                      forceExpanded={!!searchQuery || collapseMode === 'expanded'}
+                      forceCollapsed={collapseMode === 'collapsed'}
                     />
                     {(category.permission === 'editor' || profile?.role === 'admin') && (
                       <button
