@@ -1,4 +1,4 @@
-Stopař
+Kompas
 
 Lokální běh bez mocků a bez demo dat
 1) Nastav .env.local (nebo exportuj proměnné při spuštění):
@@ -8,7 +8,7 @@ Lokální běh bez mocků a bez demo dat
 
 2) Spusť Docker služby (DB + web dev):
 	- docker compose up -d supabase
-	- docker compose up stopar-web-dev
+	- docker compose up kompas-web-dev
 
 3) Aplikuj migrace do lokální DB (doporučeno Supabase CLI nebo psql):
 	- supabase db push

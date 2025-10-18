@@ -15,6 +15,7 @@ import { EditCategoryModal } from '../Modals/EditCategoryModal';
 import { EditLinkModal } from '../Modals/EditLinkModal';
 import { SettingsModal } from '../Modals/SettingsModal';
 import { filterCategories } from '../../lib/search';
+import { normalizeHexColor, hexToRgba } from '../../lib/colors';
 
 interface Link {
   id: string;
@@ -33,6 +34,7 @@ interface Category {
   owner_id: string;
   is_archived: boolean;
   display_order: number;
+  color_hex: string;
   links: Link[];
   isShared?: boolean;
   permission?: 'viewer' | 'editor' | 'owner';
@@ -62,6 +64,7 @@ type RpcCategoryRow = {
   created_at: string;
   permission: 'viewer' | 'editor' | 'owner' | null;
   shared_link_ids: string[] | null;
+  color_hex: string;
 };
 
 export const Dashboard = () => {
@@ -75,11 +78,78 @@ export const Dashboard = () => {
   const [showAdmin, setShowAdmin] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [editCategory, setEditCategory] = useState<{ id: string; name: string } | null>(null);
+  const [editCategory, setEditCategory] = useState<{ id: string; name: string; color_hex: string } | null>(null);
   const [editLinkId, setEditLinkId] = useState<string | null>(null);
   const refreshTimerRef = useRef<number | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const previewUserId = impersonatedUserId && impersonatedUserId !== user?.id ? impersonatedUserId : null;
+
+  useEffect(() => {
+    const focusSearch = (selectAll = false) => {
+      const input = searchInputRef.current;
+      if (!input) return;
+      if (document.activeElement !== input) {
+        input.focus();
+      }
+      requestAnimationFrame(() => {
+        const length = input.value.length;
+        input.setSelectionRange(selectAll ? 0 : length, length);
+      });
+    };
+
+    const handleGlobalKeydown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
+
+      const target = event.target as HTMLElement | null;
+      if (target) {
+        const tagName = target.tagName.toLowerCase();
+        if (target.isContentEditable || tagName === 'input' || tagName === 'textarea' || tagName === 'select') {
+          return;
+        }
+      }
+
+      if (event.metaKey || event.ctrlKey || event.altKey) {
+        return;
+      }
+
+      if (event.key === '/') {
+        event.preventDefault();
+        focusSearch(true);
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        const input = searchInputRef.current;
+        if (input && document.activeElement === input) {
+          input.blur();
+        }
+        return;
+      }
+
+      if (event.key === 'Backspace') {
+        event.preventDefault();
+        focusSearch();
+        setSearchQuery((prev) => {
+          if (!prev) {
+            return prev;
+          }
+          return prev.slice(0, -1);
+        });
+        return;
+      }
+
+      if (event.key.length === 1) {
+        event.preventDefault();
+        focusSearch();
+        const character = event.key;
+        setSearchQuery((prev) => `${prev}${character}`);
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeydown);
+    return () => window.removeEventListener('keydown', handleGlobalKeydown);
+  }, []);
 
   // Throttle pro refresh, aby se více změn sloučilo do jedné
   const scheduleRefresh = useCallback(() => {
@@ -168,9 +238,9 @@ export const Dashboard = () => {
         isShared: viewerId ? c.owner_id !== viewerId : true,
         permission,
         sharedLinkIds: allowedLinkIds,
+        color_hex: c.color_hex,
       };
     });
-
     setCategories(processed);
   }, [user, previewUserId]);
 
@@ -185,11 +255,11 @@ export const Dashboard = () => {
     if (!user) return;
     const channel = supabase
       .channel('realtime-dashboard')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, scheduleRefresh)
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'links' }, scheduleRefresh)
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'link_tags' }, scheduleRefresh)
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'category_shares' }, scheduleRefresh)
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'link_shares' }, scheduleRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, scheduleRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'links' }, scheduleRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'link_tags' }, scheduleRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'category_shares' }, scheduleRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'link_shares' }, scheduleRefresh)
       .subscribe();
 
     return () => {
@@ -211,8 +281,8 @@ export const Dashboard = () => {
     const draggedId = e.dataTransfer.getData('text/category-id');
     if (!draggedId || draggedId === targetId) return;
 
-  const idxFrom = categories.findIndex((c: Category) => c.id === draggedId);
-  const idxTo = categories.findIndex((c: Category) => c.id === targetId);
+    const idxFrom = categories.findIndex((c: Category) => c.id === draggedId);
+    const idxTo = categories.findIndex((c: Category) => c.id === targetId);
     if (idxFrom === -1 || idxTo === -1) return;
 
     const prevOrder = [...categories];
@@ -246,7 +316,7 @@ export const Dashboard = () => {
       .eq('id', categoryId);
 
     if (!error) {
-  setRefreshKey((k: number) => k + 1);
+      setRefreshKey((k: number) => k + 1);
     }
   };
 
@@ -257,7 +327,7 @@ export const Dashboard = () => {
       .eq('id', categoryId);
 
     if (!error) {
-  setRefreshKey((k: number) => k + 1);
+      setRefreshKey((k: number) => k + 1);
     }
   };
 
@@ -271,55 +341,57 @@ export const Dashboard = () => {
         onSearchChange={setSearchQuery}
         onOpenSettings={() => setShowSettings(true)}
         onOpenAdmin={profile?.role === 'admin' ? () => setShowAdmin(true) : undefined}
+        onAddCategory={() => setShowAddCategory(true)}
+        searchInputRef={searchInputRef}
       />
 
       <PinnedLinksBar key={refreshKey} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <button
-            onClick={() => setShowAddCategory(true)}
-            className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Nová kategorie</span>
-          </button>
-        </div>
-
         {ownCategories.length > 0 && (
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
               Moje kategorie
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {ownCategories.map((category: Category) => (
-                <div
-                  key={category.id}
-                  className="relative"
-                  draggable
-                  onDragStart={(e: DragEvent<HTMLDivElement>) => onCategoryDragStart(e, category.id)}
-                  onDragOver={onCategoryDragOver}
-                  onDrop={(e: DragEvent<HTMLDivElement>) => onCategoryDrop(e, category.id)}
-                >
-                  <CategoryCard
-                    category={category}
-                    onEdit={(cat: Category) => setEditCategory({ id: cat.id, name: cat.name })}
-                    onDelete={handleDeleteCategory}
-                    onShare={(cat: Category) => setShareCategoryId(cat.id)}
-                    onArchive={handleArchiveCategory}
-                    onRefresh={() => setRefreshKey((k: number) => k + 1)}
-                    onEditLink={(id: string) => setEditLinkId(id)}
-                    onShareLink={(linkId: string, linkName: string) => setShareLink({ id: linkId, name: linkName })}
-                  />
-                  <button
-                    onClick={() => setShowAddLink(category.id)}
-                    className="absolute bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-lg transition"
-                    title="Přidat odkaz"
+              {ownCategories.map((category: Category) => {
+                const accent = normalizeHexColor(category.color_hex);
+                const addLinkButtonStyle = {
+                  borderColor: hexToRgba(accent, 0.4),
+                  color: accent,
+                  boxShadow: `0 12px 24px ${hexToRgba(accent, 0.18)}`,
+                };
+
+                return (
+                  <div
+                    key={category.id}
+                    className="relative"
+                    draggable
+                    onDragStart={(e: DragEvent<HTMLDivElement>) => onCategoryDragStart(e, category.id)}
+                    onDragOver={onCategoryDragOver}
+                    onDrop={(e: DragEvent<HTMLDivElement>) => onCategoryDrop(e, category.id)}
                   >
-                    <Plus className="w-5 h-5" />
-                  </button>
-                </div>
-              ))}
+                    <CategoryCard
+                      category={category}
+                      onEdit={(cat: Category) => setEditCategory({ id: cat.id, name: cat.name, color_hex: cat.color_hex })}
+                      onDelete={handleDeleteCategory}
+                      onShare={(cat: Category) => setShareCategoryId(cat.id)}
+                      onArchive={handleArchiveCategory}
+                      onRefresh={() => setRefreshKey((k: number) => k + 1)}
+                      onEditLink={(id: string) => setEditLinkId(id)}
+                      onShareLink={(linkId: string, linkName: string) => setShareLink({ id: linkId, name: linkName })}
+                    />
+                    <button
+                      onClick={() => setShowAddLink(category.id)}
+                      className="absolute bottom-4 right-4 rounded-full border bg-white/40 backdrop-blur p-3 shadow-lg transition hover:bg-white/60"
+                      style={addLinkButtonStyle}
+                      title="Přidat odkaz"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -330,29 +402,39 @@ export const Dashboard = () => {
               Sdíleno se mnou
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {sharedCategories.map((category: Category) => (
-                <div key={category.id} className="relative">
-                  <CategoryCard
-                    category={category}
-                    onEdit={(cat: Category) => setEditCategory({ id: cat.id, name: cat.name })}
-                    onDelete={handleDeleteCategory}
-                    onShare={(cat: Category) => setShareCategoryId(cat.id)}
-                    onArchive={handleArchiveCategory}
-                    onRefresh={() => setRefreshKey((k: number) => k + 1)}
-                    onEditLink={(id: string) => setEditLinkId(id)}
-                    onShareLink={(linkId: string, linkName: string) => setShareLink({ id: linkId, name: linkName })}
-                  />
-                  {(category.permission === 'editor' || profile?.role === 'admin') && (
-                    <button
-                      onClick={() => setShowAddLink(category.id)}
-                      className="absolute bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-lg transition"
-                      title="Přidat odkaz"
-                    >
-                      <Plus className="w-5 h-5" />
-                    </button>
-                  )}
-                </div>
-              ))}
+              {sharedCategories.map((category: Category) => {
+                const accent = normalizeHexColor(category.color_hex);
+                const addLinkButtonStyle = {
+                  borderColor: hexToRgba(accent, 0.4),
+                  color: accent,
+                  boxShadow: `0 12px 24px ${hexToRgba(accent, 0.18)}`,
+                };
+
+                return (
+                  <div key={category.id} className="relative">
+                    <CategoryCard
+                      category={category}
+                      onEdit={(cat: Category) => setEditCategory({ id: cat.id, name: cat.name, color_hex: cat.color_hex })}
+                      onDelete={handleDeleteCategory}
+                      onShare={(cat: Category) => setShareCategoryId(cat.id)}
+                      onArchive={handleArchiveCategory}
+                      onRefresh={() => setRefreshKey((k: number) => k + 1)}
+                      onEditLink={(id: string) => setEditLinkId(id)}
+                      onShareLink={(linkId: string, linkName: string) => setShareLink({ id: linkId, name: linkName })}
+                    />
+                    {(category.permission === 'editor' || profile?.role === 'admin') && (
+                      <button
+                        onClick={() => setShowAddLink(category.id)}
+                        className="absolute bottom-4 right-4 rounded-full border bg-white/40 backdrop-blur p-3 shadow-lg transition hover:bg-white/60"
+                        style={addLinkButtonStyle}
+                        title="Přidat odkaz"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -369,7 +451,7 @@ export const Dashboard = () => {
             {!searchQuery && (
               <button
                 onClick={() => setShowAddCategory(true)}
-                className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition"
+                className="inline-flex items-center space-x-2 rounded-full border border-[#f05a28]/40 bg-white/30 backdrop-blur px-6 py-3 text-[#f05a28] shadow-sm transition hover:bg-white/45 hover:border-[#f05a28]/60"
               >
                 <Plus className="w-5 h-5" />
                 <span>Vytvořit první kategorii</span>
@@ -382,7 +464,7 @@ export const Dashboard = () => {
       <AddCategoryModal
         isOpen={showAddCategory}
         onClose={() => setShowAddCategory(false)}
-  onSuccess={() => setRefreshKey((k: number) => k + 1)}
+        onSuccess={() => setRefreshKey((k: number) => k + 1)}
       />
 
       {showAddLink && (
@@ -426,6 +508,7 @@ export const Dashboard = () => {
           isOpen={true}
           categoryId={editCategory.id}
           initialName={editCategory.name}
+          initialColor={editCategory.color_hex}
           onClose={() => setEditCategory(null)}
           onSuccess={() => setRefreshKey((k: number) => k + 1)}
         />

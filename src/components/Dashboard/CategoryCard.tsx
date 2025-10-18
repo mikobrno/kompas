@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { DragEvent } from 'react';
 import { MoreVertical, Edit2, Trash2, Share2, Archive, Pin, UserPlus, Users, ChevronDown } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { normalizeHexColor, hexToRgba } from '../../lib/colors';
 
 interface Link {
   id: string;
@@ -21,6 +22,7 @@ interface Category {
   owner_id: string;
   is_archived: boolean;
   display_order: number;
+  color_hex: string;
   links: Link[];
   isShared?: boolean;
   permission?: 'viewer' | 'editor' | 'owner';
@@ -53,6 +55,28 @@ export const CategoryCard = ({
   const [dragLinkId, setDragLinkId] = useState<string | null>(null);
   const [linksLocal, setLinksLocal] = useState<Link[]>(category.links);
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const accent = useMemo(() => normalizeHexColor(category.color_hex), [category.color_hex]);
+  const cardStyle = useMemo(() => ({
+    borderColor: hexToRgba(accent, 0.4),
+    boxShadow: `0 18px 35px ${hexToRgba(accent, 0.12)}`,
+  }), [accent]);
+  const headerStyle = useMemo(() => ({
+    borderColor: hexToRgba(accent, 0.5),
+    background: `linear-gradient(135deg, ${hexToRgba(accent, 0.24)} 0%, ${hexToRgba(accent, 0.1)} 100%)`,
+  }), [accent]);
+  const accentIconStyle = useMemo(() => ({ color: accent }), [accent]);
+  const badgeStyle = useMemo(() => ({
+    backgroundColor: hexToRgba(accent, 0.22),
+    color: accent,
+  }), [accent]);
+  const tagStyle = useMemo(() => ({
+    borderColor: hexToRgba(accent, 0.3),
+    backgroundColor: hexToRgba(accent, 0.12),
+    color: accent,
+  }), [accent]);
+  const linkBorderStyle = useMemo(() => ({ borderColor: hexToRgba(accent, 0.4) }), [accent]);
+  const subtleBorderStyle = useMemo(() => ({ borderColor: hexToRgba(accent, 0.35) }), [accent]);
 
   // Synchronizace s props při změně kategorie/odkazů
   useEffect(() => {
@@ -177,22 +201,33 @@ export const CategoryCard = ({
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-      <div className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-slate-700 dark:to-slate-800 px-4 py-3 flex items-center justify-between border-b border-slate-200 dark:border-slate-700">
-        <div className="flex items-center gap-2 flex-1 pr-2">
-          <button
-            onClick={toggleCollapse}
-            className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-600 transition"
-            aria-label={isCollapsed ? 'Rozbalit kategorii' : 'Sbalit kategorii'}
-            aria-expanded={isCollapsed ? 'false' : 'true'}
-          >
-            <ChevronDown className={`w-4 h-4 text-slate-600 dark:text-slate-300 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
-          </button>
-          <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2 flex-1">
+    <div
+      className="bg-white/85 dark:bg-slate-800/75 backdrop-blur-sm rounded-2xl shadow-sm border transition-colors"
+      style={cardStyle}
+    >
+      <div
+        className="px-4 py-3 flex items-center justify-between border-b rounded-t-2xl bg-white/20 dark:bg-slate-800/60"
+        style={headerStyle}
+      >
+        <button
+          type="button"
+          onClick={toggleCollapse}
+          className="group flex items-center gap-3 flex-1 pr-4 py-2 rounded-xl border border-transparent bg-transparent text-left transition hover:border-white/40 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/40 dark:hover:bg-slate-700/50"
+          aria-label={isCollapsed ? 'Rozbalit kategorii' : 'Sbalit kategorii'}
+          aria-expanded={isCollapsed ? 'false' : 'true'}
+        >
+          <span className="flex items-center justify-center w-7 h-7 rounded-lg border border-white/30 bg-white/25 backdrop-blur dark:border-slate-500/40 dark:bg-slate-700/60">
+            <ChevronDown
+              className={`w-4 h-4 transition-transform ${isCollapsed ? '-rotate-90' : ''}`}
+              style={accentIconStyle}
+            />
+          </span>
+          <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-2 flex-1">
             <span className="whitespace-normal break-words" title={category.name}>{category.name}</span>
             {category.isShared && (
               <span
-                className="inline-flex items-center gap-1 text-xs rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5"
+                className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5"
+                style={badgeStyle}
                 title={`Sdílená kategorie${categoryPermLabel ? ` – ${categoryPermLabel}` : ''}`}
                 aria-label={`Sdílená kategorie${categoryPermLabel ? ` – ${categoryPermLabel}` : ''}`}
               >
@@ -200,17 +235,17 @@ export const CategoryCard = ({
                 <span>Sdílená</span>
               </span>
             )}
-          </h3>
-        </div>
+          </span>
+        </button>
 
         {canManageCategory && (
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition"
+              className="p-1 rounded border border-white/30 bg-white/20 backdrop-blur hover:bg-white/35 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition"
               title="Možnosti"
             >
-              <MoreVertical className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+              <MoreVertical className="w-4 h-4" style={accentIconStyle} />
             </button>
 
             {showMenu && (
@@ -219,13 +254,16 @@ export const CategoryCard = ({
                   className="fixed inset-0 z-10"
                   onClick={() => setShowMenu(false)}
                 />
-                <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 z-20">
+                <div
+                  className="absolute right-0 mt-1 w-48 bg-white/95 dark:bg-slate-800 rounded-xl shadow-xl border z-20"
+                  style={subtleBorderStyle}
+                >
                   <button
                     onClick={() => {
                       setShowMenu(false);
                       onEdit(category);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition text-slate-700 dark:text-slate-300"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-white/30 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-slate-700 dark:text-slate-200"
                   >
                     <Edit2 className="w-4 h-4" />
                     <span>Přejmenovat</span>
@@ -236,7 +274,7 @@ export const CategoryCard = ({
                         setShowMenu(false);
                         onShare(category);
                       }}
-                      className="w-full flex items-center space-x-2 px-4 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition text-slate-700 dark:text-slate-300"
+                      className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-white/30 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-slate-700 dark:text-slate-200"
                     >
                       <Share2 className="w-4 h-4" />
                       <span>Sdílet</span>
@@ -247,7 +285,7 @@ export const CategoryCard = ({
                       setShowMenu(false);
                       onArchive(category.id);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition text-slate-700 dark:text-slate-300"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-white/30 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-slate-700 dark:text-slate-200"
                   >
                     <Archive className="w-4 h-4" />
                     <span>Archivovat</span>
@@ -257,7 +295,7 @@ export const CategoryCard = ({
                       setShowMenu(false);
                       onDelete(category.id);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition text-red-600 dark:text-red-400"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-red-200/70 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-red-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-red-600 dark:text-red-400"
                   >
                     <Trash2 className="w-4 h-4" />
                     <span>Smazat</span>
@@ -270,7 +308,7 @@ export const CategoryCard = ({
       </div>
 
       {!isCollapsed && (
-        <div className="p-4 space-y-2">
+        <div className="p-5 space-y-3">
         {linksLocal.filter(l => !l.is_archived).length === 0 ? (
           <p className="text-center text-slate-500 dark:text-slate-400 py-8 text-sm">
             Žádné odkazy
@@ -279,7 +317,8 @@ export const CategoryCard = ({
           linksLocal.filter(l => !l.is_archived).map((link) => (
             <div
               key={link.id}
-              className="group relative bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+              className="group relative bg-white/80 dark:bg-slate-800/65 border rounded-xl p-3 transition hover:shadow-md"
+              style={linkBorderStyle}
               draggable={canEdit}
               onDragStart={(e) => onLinkDragStart(e, link.id)}
               onDragOver={onLinkDragOver}
@@ -310,7 +349,8 @@ export const CategoryCard = ({
                     </p>
                     {link.isSharedLink && (
                       <span
-                        className="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 text-xs flex-shrink-0"
+                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs flex-shrink-0"
+                        style={badgeStyle}
                         title="Sdíleno odkazem"
                         aria-label="Sdíleno odkazem"
                       >
@@ -320,11 +360,12 @@ export const CategoryCard = ({
                     )}
                   </div>
                   {link.tags && link.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
+                    <div className="flex flex-wrap gap-2 mt-1">
                       {link.tags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded"
+                          className="inline-flex items-center text-xs font-medium px-3 py-0.5 rounded-full border backdrop-blur-sm shadow-sm"
+                          style={tagStyle}
                         >
                           {tag.name}
                         </span>
@@ -337,10 +378,10 @@ export const CategoryCard = ({
               <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition">
                 <button
                   onClick={() => setShowLinkMenu(showLinkMenu === link.id ? null : link.id)}
-                  className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded"
+                  className="p-1 rounded border border-white/30 bg-white/20 backdrop-blur hover:bg-white/35 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70"
                   title="Možnosti odkazu"
                 >
-                  <MoreVertical className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                  <MoreVertical className="w-4 h-4" style={accentIconStyle} />
                 </button>
 
                 {showLinkMenu === link.id && (
@@ -349,13 +390,16 @@ export const CategoryCard = ({
                       className="fixed inset-0 z-10"
                       onClick={() => setShowLinkMenu(null)}
                     />
-                    <div className="absolute right-0 mt-1 w-40 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 z-20">
+                    <div
+                      className="absolute right-0 mt-1 w-40 bg-white/95 dark:bg-slate-800 rounded-xl shadow-xl border z-20"
+                      style={subtleBorderStyle}
+                    >
                       <button
                         onClick={() => {
                           setShowLinkMenu(null);
                           pinLink(link.id);
                         }}
-                        className="w-full flex items-center space-x-2 px-4 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition text-slate-700 dark:text-slate-300"
+                        className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-white/30 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-slate-700 dark:text-slate-200"
                       >
                         <Pin className="w-4 h-4" />
                         <span>Připnout</span>
@@ -366,7 +410,7 @@ export const CategoryCard = ({
                             setShowLinkMenu(null);
                             onShareLink(link.id, link.display_name);
                           }}
-                          className="w-full flex items-center space-x-2 px-4 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition text-slate-700 dark:text-slate-300"
+                          className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-white/30 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-slate-700 dark:text-slate-200"
                         >
                           <Share2 className="w-4 h-4" />
                           <span>Sdílet</span>
@@ -378,7 +422,7 @@ export const CategoryCard = ({
                             setShowLinkMenu(null);
                             onEditLink(link.id);
                           }}
-                          className="w-full flex items-center space-x-2 px-4 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition text-slate-700 dark:text-slate-300"
+                          className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-white/30 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-slate-700 dark:text-slate-200"
                         >
                           <Edit2 className="w-4 h-4" />
                           <span>Upravit</span>
@@ -398,7 +442,7 @@ export const CategoryCard = ({
                               onRefresh();
                             }
                           }}
-                          className="w-full flex items-center space-x-2 px-4 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition text-slate-700 dark:text-slate-300"
+                          className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-white/30 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-slate-700 dark:text-slate-200"
                         >
                           <Archive className="w-4 h-4" />
                           <span>Archivovat</span>
@@ -410,7 +454,7 @@ export const CategoryCard = ({
                             setShowLinkMenu(null);
                             deleteLink(link.id);
                           }}
-                          className="w-full flex items-center space-x-2 px-4 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition text-red-600 dark:text-red-400"
+                          className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-red-200/70 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-red-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-red-600 dark:text-red-400"
                         >
                           <Trash2 className="w-4 h-4" />
                           <span>Smazat</span>
@@ -425,10 +469,19 @@ export const CategoryCard = ({
         )}
         {linksLocal.some(l => l.is_archived) && (
           <div className="pt-4">
-            <h4 className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Archivované odkazy</h4>
+            <h4
+              className="text-xs uppercase tracking-wide mb-2"
+              style={accentIconStyle}
+            >
+              Archivované odkazy
+            </h4>
             <div className="space-y-2">
               {linksLocal.filter(l => l.is_archived).map(link => (
-                <div key={link.id} className="relative bg-slate-50/60 dark:bg-slate-700/40 rounded-lg p-3 opacity-80 hover:opacity-100 transition">
+                <div
+                  key={link.id}
+                  className="relative bg-white/70 dark:bg-slate-800/50 border rounded-lg p-3 opacity-80 hover:opacity-100 transition"
+                  style={subtleBorderStyle}
+                >
                   <div className="flex items-center justify-between">
                     <a href={link.url} target="_blank" rel="noopener noreferrer" className="truncate text-slate-700 dark:text-slate-300">
                       {link.display_name}
@@ -447,7 +500,8 @@ export const CategoryCard = ({
                               onRefresh();
                             }
                           }}
-                          className="px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700"
+                          className="px-2 py-1 text-xs rounded border transition hover:bg-white/40 dark:hover:bg-slate-700"
+                          style={linkBorderStyle}
                         >
                           Obnovit
                         </button>
@@ -465,7 +519,7 @@ export const CategoryCard = ({
             </div>
           </div>
         )}
-      </div>
+        </div>
       )}
     </div>
   );

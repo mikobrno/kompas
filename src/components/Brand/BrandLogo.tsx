@@ -1,0 +1,38 @@
+import { memo } from 'react';
+
+interface BrandLogoProps {
+  size?: number;
+  className?: string;
+}
+
+/**
+ * Brand compass icon that reflects the Kompas identity using the orange palette.
+ */
+const BrandLogoComponent = ({ size = 40, className }: BrandLogoProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 64 64"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    aria-hidden="true"
+  >
+    <defs>
+      <linearGradient id="kompasOuterRing" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stopColor="#ffb28d" />
+        <stop offset="1" stopColor="#f05a28" />
+      </linearGradient>
+      <linearGradient id="kompasNeedle" x1="20" y1="44" x2="44" y2="20" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stopColor="#f05a28" />
+        <stop offset="1" stopColor="#ff8b5c" />
+      </linearGradient>
+    </defs>
+    <circle cx="32" cy="32" r="28" fill="url(#kompasOuterRing)" opacity="0.25" />
+    <circle cx="32" cy="32" r="24" fill="#fff6f2" stroke="#f05a28" strokeWidth="2" />
+    <path d="M32 16L40 32L32 48L24 32L32 16Z" fill="url(#kompasNeedle)" />
+    <circle cx="32" cy="32" r="4" fill="#fff" stroke="#f05a28" strokeWidth="2" />
+  </svg>
+);
+
+export const BrandLogo = memo(BrandLogoComponent);

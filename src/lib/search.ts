@@ -15,6 +15,7 @@ export type Category = {
   owner_id: string;
   is_archived: boolean;
   display_order: number;
+  color_hex: string;
   links: Link[];
   isShared?: boolean;
   permission?: 'viewer' | 'editor' | 'owner';

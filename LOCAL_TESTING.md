@@ -1,4 +1,4 @@
-# Stopař - Lokální testování
+# Kompas - Lokální testování
 
 ## ✅ Databáze připravena
 
@@ -8,7 +8,7 @@
 
 ## Přihlášení
 
-**Email:** admin@stopar.cz  
+**Email:** admin@kompas.cz  
 **Heslo:** admin123
 
 *(již předvyplněno vLoginForm)*
@@ -16,7 +16,7 @@
 ## Co bylo opraveno
 
 1. **RLS infinite recursion** – policies na tabulce `categories` byly přepsány bez rekurzivních dotazů na `users`.
-2. **Admin role** – uživatel admin@stopar.cz povýšen na roli `admin` v DB.
+2. **Admin role** – uživatel admin@kompas.cz povýšen na roli `admin` v DB.
 3. **Auto-seed** – po prvním přihlášení se automaticky vytvoří:
    - Kategorie "Moje první kategorie"
    - 2 ukázkové odkazy (Supabase Docs, GitHub)

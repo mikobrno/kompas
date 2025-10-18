@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { LogIn } from 'lucide-react';
+import { BrandLogo } from '../Brand/BrandLogo';
 
 interface LoginFormProps {
   onToggleForm: () => void;
@@ -29,17 +29,18 @@ export const LoginForm = ({ onToggleForm }: LoginFormProps) => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 px-4">
       <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
-        <div className="flex items-center justify-center mb-8">
-          <div className="bg-blue-600 p-3 rounded-xl">
-            <LogIn className="w-8 h-8 text-white" />
-          </div>
+        <div className="flex flex-col items-center justify-center mb-6">
+          <BrandLogo size={56} />
+          <h2 className="mt-4 text-3xl font-bold text-center text-slate-900 dark:text-white">
+            Kompas
+          </h2>
+          <p className="text-center text-slate-600 dark:text-slate-400 text-sm">
+            Přihlaste se do firemního znalostního kompasu
+          </p>
         </div>
 
-        <h2 className="text-3xl font-bold text-center mb-2 text-slate-900 dark:text-white">
-          Stopař
-        </h2>
-        <p className="text-center text-slate-600 dark:text-slate-400 mb-8">
-          Přihlaste se do firemního rozcestníku
+        <p className="text-center text-slate-500 dark:text-slate-400 mb-8 text-sm">
+          Přístup na jedno místo pro všechny důležité odkazy a zdroje
         </p>
         {isDev && (
           <div className="mb-4 text-xs text-center text-slate-500 dark:text-slate-400">
@@ -64,7 +65,7 @@ export const LoginForm = ({ onToggleForm }: LoginFormProps) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/70 focus:border-transparent transition"
               placeholder="vas.email@firma.cz"
             />
           </div>
@@ -79,7 +80,7 @@ export const LoginForm = ({ onToggleForm }: LoginFormProps) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/70 focus:border-transparent transition"
               placeholder="••••••••"
             />
           </div>
@@ -87,7 +88,7 @@ export const LoginForm = ({ onToggleForm }: LoginFormProps) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-[#f05a28] hover:bg-[#ff7846] text-white font-medium py-3 px-4 rounded-lg shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Přihlašování...' : 'Přihlásit se'}
           </button>
@@ -96,7 +97,7 @@ export const LoginForm = ({ onToggleForm }: LoginFormProps) => {
         <div className="mt-6 text-center">
           <button
             onClick={onToggleForm}
-            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            className="text-sm text-[#f05a28] dark:text-[#ff8b5c] hover:underline"
           >
             Nemáte účet? Zaregistrujte se
           </button>

@@ -9,6 +9,8 @@ vi.spyOn(AuthModule, 'useAuth').mockReturnValue({
   profile: null,
   session: null,
   loading: false,
+  impersonatedUserId: null,
+  clearImpersonation: vi.fn(),
   signIn: vi.fn(),
   signUp: vi.fn(),
   signOut: vi.fn(),
@@ -35,6 +37,7 @@ describe('CategoryCard DnD', () => {
       owner_id: 'owner',
       is_archived: false,
       display_order: 0,
+      color_hex: '#f05a28',
       links: [
         { id: 'l1', display_name: 'A', url: '#', favicon_url: null, display_order: 0 },
         { id: 'l2', display_name: 'B', url: '#', favicon_url: null, display_order: 1 },

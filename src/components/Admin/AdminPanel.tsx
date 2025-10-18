@@ -210,29 +210,29 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-4xl w-full max-h-[80vh] flex flex-col">
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white/95 dark:bg-slate-900/95 border border-[#f05a28]/30 rounded-2xl shadow-2xl shadow-[#f05a28]/10 max-w-4xl w-full max-h-[80vh] flex flex-col">
+        <div className="flex items-center justify-between p-6 border-b border-[#f05a28]/20 dark:border-[#f05a28]/15 bg-white/40 dark:bg-slate-900/40 rounded-t-2xl">
           <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
             Administrace
           </h3>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition"
+            className="p-2 rounded-lg border border-transparent hover:border-[#f05a28]/30 hover:bg-white/40 dark:hover:bg-slate-800/60 transition"
             title="Zavřít administraci"
             aria-label="Zavřít administraci"
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]" />
           </button>
         </div>
 
-        <div className="flex border-b border-slate-200 dark:border-slate-700">
+        <div className="flex border-b border-[#f05a28]/20 dark:border-[#f05a28]/25 bg-white/30 dark:bg-slate-900/30">
           <button
             onClick={() => setActiveTab('users')}
             className={`flex-1 px-6 py-3 font-medium transition ${
               activeTab === 'users'
-                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'text-[#f05a28] dark:text-[#ff8b5c] border-b-2 border-[#f05a28] dark:border-[#ff8b5c] bg-white/50 dark:bg-slate-900/40'
+                : 'text-slate-600 dark:text-slate-400 hover:text-[#f05a28] dark:hover:text-[#ff8b5c]'
             }`}
           >
             Uživatelé
@@ -241,8 +241,8 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
             onClick={() => setActiveTab('roles')}
             className={`flex-1 px-6 py-3 font-medium transition ${
               activeTab === 'roles'
-                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'text-[#f05a28] dark:text-[#ff8b5c] border-b-2 border-[#f05a28] dark:border-[#ff8b5c] bg-white/50 dark:bg-slate-900/40'
+                : 'text-slate-600 dark:text-slate-400 hover:text-[#f05a28] dark:hover:text-[#ff8b5c]'
             }`}
           >
             Role
@@ -251,8 +251,8 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
             onClick={() => setActiveTab('groups')}
             className={`flex-1 px-6 py-3 font-medium transition ${
               activeTab === 'groups'
-                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'text-[#f05a28] dark:text-[#ff8b5c] border-b-2 border-[#f05a28] dark:border-[#ff8b5c] bg-white/50 dark:bg-slate-900/40'
+                : 'text-slate-600 dark:text-slate-400 hover:text-[#f05a28] dark:hover:text-[#ff8b5c]'
             }`}
           >
             Skupiny
@@ -261,8 +261,8 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
             onClick={() => setActiveTab('tags')}
             className={`flex-1 px-6 py-3 font-medium transition ${
               activeTab === 'tags'
-                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'text-[#f05a28] dark:text-[#ff8b5c] border-b-2 border-[#f05a28] dark:border-[#ff8b5c] bg-white/50 dark:bg-slate-900/40'
+                : 'text-slate-600 dark:text-slate-400 hover:text-[#f05a28] dark:hover:text-[#ff8b5c]'
             }`}
           >
             Štítky
@@ -271,8 +271,8 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
             onClick={() => setActiveTab('archive')}
             className={`flex-1 px-6 py-3 font-medium transition ${
               activeTab === 'archive'
-                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'text-[#f05a28] dark:text-[#ff8b5c] border-b-2 border-[#f05a28] dark:border-[#ff8b5c] bg-white/50 dark:bg-slate-900/40'
+                : 'text-slate-600 dark:text-slate-400 hover:text-[#f05a28] dark:hover:text-[#ff8b5c]'
             }`}
           >
             Archiv
@@ -287,7 +287,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
               {users.map(user => (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg"
+                  className="flex items-center justify-between p-4 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50 shadow-sm"
                 >
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white">
@@ -303,17 +303,17 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                         localStorage.setItem('impersonateUserId', user.id);
                         window.location.reload();
                       }}
-                      className="px-3 py-1 rounded text-sm font-medium border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600"
+                      className="px-3 py-1 rounded text-sm font-medium border border-[#f05a28]/25 text-[#f05a28] dark:text-[#ff8b5c] hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
                       title="Náhled jako tento uživatel"
                     >
                       Náhled
                     </button>
                     <button
                       onClick={() => handleToggleRole(user.id, user.role)}
-                      className={`px-3 py-1 rounded text-sm font-medium ${
+                      className={`px-3 py-1 rounded text-sm font-medium transition ${
                         user.role === 'admin'
-                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                          : 'bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300'
+                          ? 'border border-[#f05a28]/30 bg-[#f05a28]/15 dark:bg-[#f05a28]/20 text-[#f05a28] dark:text-[#ff8b5c]'
+                          : 'border border-[#f05a28]/20 text-slate-700 dark:text-slate-200 hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20'
                       }`}
                     >
                       {user.role === 'admin' ? 'Admin' : 'Uživatel'}
@@ -326,9 +326,9 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
 
           {activeTab === 'roles' && (
             <div className="space-y-6">
-              <div className="p-4 bg-slate-100 dark:bg-slate-700/40 rounded-lg flex items-start justify-between gap-4">
+              <div className="p-4 bg-[#f05a28]/10 dark:bg-[#f05a28]/20 rounded-xl border border-[#f05a28]/20 flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <Shield className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  <Shield className="w-6 h-6 text-[#f05a28] dark:text-[#ff8b5c]" />
                   <div>
                     <h4 className="font-semibold text-slate-900 dark:text-white">Správa rolí</h4>
                     <p className="text-sm text-slate-600 dark:text-slate-300">
@@ -336,14 +336,14 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                     </p>
                   </div>
                 </div>
-                <div className="text-right text-sm text-slate-600 dark:text-slate-300">
+                <div className="text-right text-sm text-slate-700 dark:text-slate-200">
                   <p><strong>{adminUsers.length}</strong> administrátor{adminUsers.length === 1 ? '' : adminUsers.length >= 2 && adminUsers.length <= 4 ? 'i' : 'ů'}</p>
                   <p><strong>{regularUsers.length}</strong> běžných uživatelů</p>
                 </div>
               </div>
 
               <div className="grid gap-6 md:grid-cols-2">
-                <section className="p-4 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <section className="p-4 rounded-xl bg-white/85 dark:bg-slate-900/60 border border-[#f05a28]/20">
                   <h5 className="text-lg font-medium text-slate-900 dark:text-white">Administrátoři</h5>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                     Mají plný přístup do administrace, k uživatelům, skupinám i archivovaným kategoriím.
@@ -357,7 +357,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                     {adminUsers.map(admin => (
                       <div
                         key={admin.id}
-                        className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg"
+                        className="flex items-center justify-between p-3 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50"
                       >
                         <div>
                           <p className="font-medium text-slate-900 dark:text-white">{admin.full_name}</p>
@@ -368,7 +368,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                           disabled={adminUsers.length <= 1}
                           className={`px-3 py-1 rounded text-sm font-medium border transition ${
                             adminUsers.length <= 1
-                              ? 'border-slate-300 dark:border-slate-600 text-slate-400 cursor-not-allowed'
+                              ? 'border-[#f05a28]/15 text-slate-400 cursor-not-allowed'
                               : 'border-red-300 dark:border-red-500 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10'
                           }`}
                           title={adminUsers.length <= 1 ? 'Musí zůstat alespoň jeden administrátor' : 'Odebrat uživatele z role administrátor'}
@@ -379,7 +379,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                     ))}
                   </div>
 
-                  <div className="mt-5 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="mt-5 p-4 bg-[#f05a28]/10 dark:bg-[#f05a28]/15 rounded-xl border border-[#f05a28]/15">
                     <h6 className="font-medium text-slate-900 dark:text-white">Přidat administrátora</h6>
                     {regularUsers.length === 0 ? (
                       <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">Všichni uživatelé již mají roli administrátor.</p>
@@ -392,7 +392,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                           <select
                             value={promoteCandidateId}
                             onChange={(e) => setPromoteCandidateId(e.target.value)}
-                            className="flex-1 px-3 py-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm"
+                            className="flex-1 px-3 py-2 rounded-xl border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/50"
                             aria-label="Vyberte uživatele, kterému chcete udělit roli administrátora"
                           >
                             <option value="">Vyberte uživatele</option>
@@ -405,10 +405,10 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                           <button
                             onClick={handlePromoteToAdmin}
                             disabled={!promoteCandidateId}
-                            className={`px-4 py-2 rounded text-sm font-medium transition ${
+                            className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
                               promoteCandidateId
-                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                : 'bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-300 cursor-not-allowed'
+                                ? 'bg-[#f05a28] hover:bg-[#ff7846] text-white shadow'
+                                : 'bg-white/60 text-slate-400 cursor-not-allowed border border-[#f05a28]/20'
                             }`}
                           >
                             Přidat
@@ -419,7 +419,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                   </div>
                 </section>
 
-                <section className="p-4 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <section className="p-4 rounded-xl bg-white/85 dark:bg-slate-900/60 border border-[#f05a28]/20">
                   <h5 className="text-lg font-medium text-slate-900 dark:text-white">Běžní uživatelé</h5>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                     Vidí pouze své vlastní nebo s nimi sdílené kategorie a nemohou vstoupit do administrace.
@@ -432,7 +432,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                     {regularUsers.map(user => (
                       <div
                         key={user.id}
-                        className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg"
+                        className="flex items-center justify-between p-3 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50"
                       >
                         <div>
                           <p className="font-medium text-slate-900 dark:text-white">{user.full_name}</p>
@@ -440,7 +440,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                         </div>
                         <button
                           onClick={() => handleToggleRole(user.id, 'user')}
-                          className="px-3 py-1 rounded text-sm font-medium border border-blue-300 dark:border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition"
+                          className="px-3 py-1 rounded text-sm font-medium border border-[#f05a28]/30 text-[#f05a28] dark:text-[#ff8b5c] hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
                         >
                           Udělit roli Admin
                         </button>
@@ -456,14 +456,14 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
             <div className="space-y-4">
               <button
                 onClick={() => setShowAddGroup(true)}
-                className="w-full flex items-center justify-center space-x-2 p-4 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
+                className="w-full flex items-center justify-center space-x-2 p-4 border-2 border-dashed border-[#f05a28]/30 rounded-xl hover:border-[#f05a28]/70 text-slate-600 dark:text-slate-400 hover:text-[#f05a28] dark:hover:text-[#ff8b5c] transition"
               >
                 <Users className="w-5 h-5" />
                 <span>Vytvořit novou skupinu</span>
               </button>
 
               {showAddGroup && (
-                <form onSubmit={handleCreateGroup} className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <form onSubmit={handleCreateGroup} className="p-4 bg-[#f05a28]/10 dark:bg-[#f05a28]/20 rounded-xl border border-[#f05a28]/20">
                   <input
                     type="text"
                     value={newGroupName}
@@ -471,7 +471,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                     placeholder="Název skupiny"
                     required
                     autoFocus
-                    className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white mb-3"
+                    className="w-full px-4 py-2 rounded-xl border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-slate-900 dark:text-white mb-3 focus:outline-none focus:ring-2 focus:ring-[#f05a28]/50"
                   />
                   <div className="flex space-x-2">
                     <button
@@ -480,13 +480,13 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                         setShowAddGroup(false);
                         setNewGroupName('');
                       }}
-                      className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+                      className="flex-1 px-4 py-2 border border-[#f05a28]/25 rounded-xl bg-white/70 text-[#f05a28] dark:text-[#ff8b5c] hover:bg-[#f05a28]/10 transition"
                     >
                       Zrušit
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+                      className="flex-1 px-4 py-2 rounded-xl bg-[#f05a28] hover:bg-[#ff7846] text-white shadow transition"
                     >
                       Vytvořit
                     </button>
@@ -497,10 +497,10 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
               {groups.map(group => (
                 <div
                   key={group.id}
-                  className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg"
+                  className="flex items-center justify-between p-4 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50"
                 >
                   <div className="flex items-center space-x-3">
-                    <Users className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                    <Users className="w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]" />
                     <p className="font-medium text-slate-900 dark:text-white">
                       {group.name}
                     </p>
@@ -512,13 +512,13 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                         setExpandedGroupId(newExpanded);
                         if (newExpanded) await loadGroupMembers(group.id);
                       }}
-                      className="px-3 py-1 rounded bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 text-sm"
+                      className="px-3 py-1 rounded-xl border border-[#f05a28]/25 bg-white/60 dark:bg-slate-900/40 text-slate-700 dark:text-slate-200 text-sm hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
                     >
                       Členové
                     </button>
                     <button
                       onClick={() => handleDeleteGroup(group.id)}
-                      className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition text-red-600 dark:text-red-400"
+                      className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition text-red-600 dark:text-red-400"
                       title="Smazat skupinu"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -528,14 +528,14 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
               ))}
 
               {expandedGroupId && (
-                <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                <div className="p-4 rounded-xl bg-white/85 dark:bg-slate-900/60 border border-[#f05a28]/20">
                   <h4 className="font-medium text-slate-900 dark:text-white mb-3">Správa členů</h4>
                   <div className="space-y-2 mb-4">
                     {(groupMembers[expandedGroupId] || []).map((uid) => {
                       const u = users.find(us => us.id === uid);
                       if (!u) return null;
                       return (
-                        <div key={uid} className="flex items-center justify-between p-2 rounded bg-slate-50 dark:bg-slate-700/50">
+                        <div key={uid} className="flex items-center justify-between p-2 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50">
                           <span className="text-sm text-slate-800 dark:text-slate-200">{u.full_name} ({u.email})</span>
                           <button
                             onClick={() => handleRemoveMember(expandedGroupId, uid)}
@@ -552,7 +552,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                     <select
                       value={addingMemberUserId}
                       onChange={(e) => setAddingMemberUserId(e.target.value)}
-                      className="flex-1 px-3 py-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm"
+                      className="flex-1 px-3 py-2 rounded-xl border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/50"
                       aria-label="Vyberte uživatele pro přidání do skupiny"
                     >
                       <option value="">Vyberte uživatele</option>
@@ -564,7 +564,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                     </select>
                     <button
                       onClick={() => handleAddMember(expandedGroupId)}
-                      className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                      className="px-3 py-2 rounded-xl bg-[#f05a28] hover:bg-[#ff7846] text-white text-sm shadow transition"
                     >
                       Přidat
                     </button>
@@ -576,15 +576,15 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
 
           {activeTab === 'tags' && (
             <div className="space-y-6">
-              <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+              <div className="p-4 rounded-xl border border-[#f05a28]/20 bg-white/80 dark:bg-slate-900/60">
                 <h4 className="font-medium text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                  <Merge className="w-4 h-4" /> Sloučit štítky
+                  <Merge className="w-4 h-4 text-[#f05a28] dark:text-[#ff8b5c]" /> Sloučit štítky
                 </h4>
                 <div className="flex items-center gap-2">
                   <select
                     value={mergeSourceId}
                     onChange={(e) => setMergeSourceId(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm"
+                    className="flex-1 px-3 py-2 rounded-xl border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/50"
                     aria-label="Zdrojový štítek pro sloučení"
                   >
                     <option value="">Zdrojový štítek</option>
@@ -597,11 +597,11 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                     value={mergeTargetName}
                     onChange={(e) => setMergeTargetName(e.target.value)}
                     placeholder="Cílový štítek (existující nebo nový)"
-                    className="flex-1 px-3 py-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm"
+                    className="flex-1 px-3 py-2 rounded-xl border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/50"
                   />
                   <button
                     onClick={handleMergeTags}
-                    className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                    className="px-3 py-2 rounded-xl bg-[#f05a28] hover:bg-[#ff7846] text-white text-sm shadow transition"
                   >
                     Sloučit
                   </button>
@@ -610,27 +610,27 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
 
               <div className="space-y-2">
                 {tags.map(tag => (
-                  <div key={tag.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                  <div key={tag.id} className="flex items-center justify-between p-3 rounded-xl border border-[#f05a28]/15 bg-white/75 dark:bg-slate-900/55">
                     <div className="flex items-center gap-2">
-                      <LinkIcon className="w-4 h-4 text-slate-500" />
+                      <LinkIcon className="w-4 h-4 text-[#f05a28] dark:text-[#ff8b5c]" />
                       <input
                         type="text"
                         defaultValue={tag.name}
                         onChange={(e) => setRenameTagIds(prev => ({ ...prev, [tag.id]: e.target.value }))}
-                        className="px-3 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm"
+                        className="px-3 py-1 rounded-lg border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/40"
                       />
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleRenameTag(tag.id)}
-                        className="p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-600"
+                        className="p-2 rounded-lg hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
                         title="Přejmenovat"
                       >
-                        <Save className="w-4 h-4" />
+                        <Save className="w-4 h-4 text-[#f05a28] dark:text-[#ff8b5c]" />
                       </button>
                       <button
                         onClick={() => handleDeleteTag(tag.id)}
-                        className="p-2 rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
+                        className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition"
                         title="Smazat štítek"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -648,7 +648,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                 <p className="text-sm text-slate-600 dark:text-slate-400">Archiv je prázdný.</p>
               )}
               {archived.map(cat => (
-                <div key={cat.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                <div key={cat.id} className="flex items-center justify-between p-3 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50">
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-slate-900 dark:text-white">{cat.name}</span>
                     <span className="text-xs text-slate-500">({cat.id.slice(0, 8)})</span>
@@ -656,14 +656,14 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleRestoreCategory(cat.id)}
-                      className="p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-600"
+                      className="p-2 rounded-lg hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 text-[#f05a28] dark:text-[#ff8b5c] transition"
                       title="Obnovit"
                     >
                       <Undo2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteCategory(cat.id)}
-                      className="p-2 rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
+                      className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition"
                       title="Trvale smazat"
                     >
                       <Trash2 className="w-4 h-4" />

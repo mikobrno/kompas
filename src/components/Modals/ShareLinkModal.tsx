@@ -159,11 +159,11 @@ export const ShareLinkModal = ({ isOpen, linkId, linkName, onClose, onSaved }: S
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white/95 dark:bg-slate-900/95 rounded-2xl border border-[#f05a28]/30 shadow-2xl shadow-[#f05a28]/10 max-w-2xl w-full max-h-[80vh] flex flex-col">
+        <div className="flex items-center justify-between p-6 border-b border-[#f05a28]/20 dark:border-[#f05a28]/15 bg-white/30 dark:bg-slate-900/40 rounded-t-2xl">
           <div className="flex items-center space-x-3">
-            <LinkIcon className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+            <LinkIcon className="w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]" />
             <div>
               <h3 className="text-xl font-semibold text-slate-900 dark:text-white">Sdílet odkaz</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400">{linkName}</p>
@@ -171,11 +171,11 @@ export const ShareLinkModal = ({ isOpen, linkId, linkName, onClose, onSaved }: S
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition"
+            className="p-2 rounded-lg border border-transparent hover:border-[#f05a28]/30 hover:bg-white/40 dark:hover:bg-slate-800/60 transition"
             title="Zavřít"
             aria-label="Zavřít dialog"
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]" />
           </button>
         </div>
 
@@ -183,7 +183,7 @@ export const ShareLinkModal = ({ isOpen, linkId, linkName, onClose, onSaved }: S
           {users.length > 0 && (
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <UserIcon className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                <UserIcon className="w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]" />
                 <h4 className="font-medium text-slate-900 dark:text-white">Uživatelé</h4>
               </div>
               <div className="mb-3">
@@ -192,7 +192,7 @@ export const ShareLinkModal = ({ isOpen, linkId, linkName, onClose, onSaved }: S
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                   placeholder="Hledat uživatele..."
-                  className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm"
+                  className="w-full px-3 py-2.5 rounded-xl border border-[#f05a28]/30 dark:border-slate-600 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/50"
                   aria-label="Hledat uživatele"
                 />
               </div>
@@ -209,14 +209,14 @@ export const ShareLinkModal = ({ isOpen, linkId, linkName, onClose, onSaved }: S
                     return (
                       <div
                         key={u.id}
-                        className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg"
+                        className="flex items-center justify-between p-3 rounded-xl border border-[#f05a28]/20 dark:border-[#f05a28]/15 bg-[#f05a28]/10 dark:bg-[#f05a28]/15"
                       >
                         <label className="flex items-center space-x-3 flex-1 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={selected}
                             onChange={() => handleToggleUser(u.id)}
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                            className="w-4 h-4 rounded border-[#f05a28]/40 text-[#f05a28] focus:ring-[#f05a28]/40"
                           />
                           <div>
                             <p className="font-medium text-slate-900 dark:text-white">{u.full_name}</p>
@@ -227,7 +227,7 @@ export const ShareLinkModal = ({ isOpen, linkId, linkName, onClose, onSaved }: S
                           <select
                             value={permission}
                             onChange={(e) => handlePermissionChange(`user-${u.id}`, e.target.value as 'viewer' | 'editor')}
-                            className="ml-4 px-3 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm"
+                            className="ml-4 px-3 py-1.5 rounded-lg border border-[#f05a28]/30 dark:border-slate-600 bg-white/90 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#f05a28]/40"
                             aria-label={`Oprávnění pro uživatele ${u.full_name}`}
                           >
                             <option value="viewer">Čtenář</option>
@@ -244,7 +244,7 @@ export const ShareLinkModal = ({ isOpen, linkId, linkName, onClose, onSaved }: S
           {groups.length > 0 && (
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <Users className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                <Users className="w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]" />
                 <h4 className="font-medium text-slate-900 dark:text-white">Skupiny</h4>
               </div>
               <div className="mb-3">
@@ -253,7 +253,7 @@ export const ShareLinkModal = ({ isOpen, linkId, linkName, onClose, onSaved }: S
                   value={groupSearch}
                   onChange={(e) => setGroupSearch(e.target.value)}
                   placeholder="Hledat skupiny..."
-                  className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm"
+                  className="w-full px-3 py-2.5 rounded-xl border border-[#f05a28]/30 dark:border-slate-600 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/50"
                   aria-label="Hledat skupiny"
                 />
               </div>
@@ -270,14 +270,14 @@ export const ShareLinkModal = ({ isOpen, linkId, linkName, onClose, onSaved }: S
                     return (
                       <div
                         key={g.id}
-                        className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg"
+                        className="flex items-center justify-between p-3 rounded-xl border border-[#f05a28]/20 dark:border-[#f05a28]/15 bg-[#f05a28]/10 dark:bg-[#f05a28]/15"
                       >
                         <label className="flex items-center space-x-3 flex-1 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={selected}
                             onChange={() => handleToggleGroup(g.id)}
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                            className="w-4 h-4 rounded border-[#f05a28]/40 text-[#f05a28] focus:ring-[#f05a28]/40"
                           />
                           <p className="font-medium text-slate-900 dark:text-white">{g.name}</p>
                         </label>
@@ -285,7 +285,7 @@ export const ShareLinkModal = ({ isOpen, linkId, linkName, onClose, onSaved }: S
                           <select
                             value={permission}
                             onChange={(e) => handlePermissionChange(`group-${g.id}`, e.target.value as 'viewer' | 'editor')}
-                            className="ml-4 px-3 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm"
+                            className="ml-4 px-3 py-1.5 rounded-lg border border-[#f05a28]/30 dark:border-slate-600 bg-white/90 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#f05a28]/40"
                             aria-label={`Oprávnění pro skupinu ${g.name}`}
                           >
                             <option value="viewer">Čtenář</option>
@@ -300,16 +300,16 @@ export const ShareLinkModal = ({ isOpen, linkId, linkName, onClose, onSaved }: S
           )}
         </div>
 
-        <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex space-x-3">
+        <div className="p-6 border-t border-[#f05a28]/20 dark:border-[#f05a28]/15 flex space-x-3 rounded-b-2xl bg-white/30 dark:bg-slate-900/40">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition text-slate-700 dark:text-slate-300"
+            className="flex-1 px-4 py-3 rounded-xl border border-[#f05a28]/30 bg-white/70 text-[#f05a28] dark:text-[#ff8b5c] hover:bg-[#f05a28]/15 hover:border-[#f05a28]/50 transition"
           >
             Zrušit
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+            className="flex-1 px-4 py-3 rounded-xl bg-[#f05a28] hover:bg-[#ff7846] text-white shadow-md transition"
           >
             Uložit
           </button>

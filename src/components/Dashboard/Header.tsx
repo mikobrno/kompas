@@ -1,15 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type RefObject } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { LogOut, Settings, Moon, Sun, Users } from 'lucide-react';
+import { LogOut, Settings, Moon, Sun, Users, Search, Plus } from 'lucide-react';
+import { BrandLogo } from '../Brand/BrandLogo';
 
 interface HeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onOpenSettings: () => void;
   onOpenAdmin?: () => void;
+  onAddCategory?: () => void;
+  searchInputRef?: RefObject<HTMLInputElement>;
 }
 
-export const Header = ({ searchQuery, onSearchChange, onOpenSettings, onOpenAdmin }: HeaderProps) => {
+export const Header = ({ searchQuery, onSearchChange, onOpenSettings, onOpenAdmin, onAddCategory, searchInputRef }: HeaderProps) => {
   const { profile, impersonatedUserId, clearImpersonation, signOut, updateProfile } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const [searchValue, setSearchValue] = useState(searchQuery);
@@ -38,68 +41,91 @@ export const Header = ({ searchQuery, onSearchChange, onOpenSettings, onOpenAdmi
             <button onClick={clearImpersonation} className="underline font-medium">Ukončit náhled</button>
           </div>
         )}
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-              Stopař
-            </h1>
+        <div className="flex items-center justify-between h-16 gap-4">
+          <div className="flex items-center space-x-3">
+            <BrandLogo size={38} />
+            <div>
+              <span className="block text-xl font-semibold text-slate-900 dark:text-white leading-tight">
+                Kompas
+              </span>
+              <span className="block text-xs uppercase tracking-[0.2em] text-[#f05a28] dark:text-[#ff8b5c]">
+                Online rozcestník
+              </span>
+            </div>
           </div>
 
-          <div className="flex-1 max-w-2xl mx-8">
-            <input
-              type="text"
-              placeholder="Hledat odkazy, kategorie nebo štítky..."
-              aria-label="Hledat"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-            />
+          <div className="flex-1 flex justify-center">
+            <label htmlFor="dashboard-search" className="sr-only">
+              Hledat odkazy
+            </label>
+            <div className="relative w-full max-w-lg">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#f05a28] dark:text-[#ff8b5c]" />
+              <input
+                id="dashboard-search"
+                type="search"
+                value={searchValue}
+                onChange={(event) => setSearchValue(event.target.value)}
+                placeholder="Hledat v Kompasu"
+                ref={searchInputRef}
+                className="w-full rounded-full border border-[#f05a28]/40 bg-white/70 pl-10 pr-4 py-2 text-sm text-slate-900 placeholder-slate-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#f05a28]/70 dark:border-slate-600/50 dark:bg-slate-800/80 dark:text-white dark:placeholder-slate-400"
+              />
+            </div>
           </div>
 
           <div className="flex items-center space-x-2">
+            {onAddCategory && (
+              <button
+                onClick={onAddCategory}
+                className="inline-flex items-center gap-2 rounded-full border border-[#f05a28]/40 bg-white/30 backdrop-blur px-4 py-2 text-sm font-medium text-[#f05a28] shadow-sm transition hover:bg-white/45 hover:border-[#f05a28]/60"
+                aria-label="Přidat kategorii"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Nová kategorie</span>
+              </button>
+            )}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+              className="p-2 rounded-lg border border-white/20 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition"
               title={profile?.theme === 'light' ? 'Přepnout na tmavý režim' : 'Přepnout na světlý režim'}
               aria-label={profile?.theme === 'light' ? 'Přepnout na tmavý režim' : 'Přepnout na světlý režim'}
             >
               {profile?.theme === 'light' ? (
-                <Moon className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                <Moon className="w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]" />
               ) : (
-                <Sun className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                <Sun className="w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]" />
               )}
             </button>
 
             {profile?.role === 'admin' && onOpenAdmin && (
               <button
                 onClick={onOpenAdmin}
-                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+                className="p-2 rounded-lg border border-white/20 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition"
                 title="Administrace"
                 aria-label="Otevřít administraci"
               >
-                <Users className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                <Users className="w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]" />
               </button>
             )}
 
             <button
               onClick={onOpenSettings}
-              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+              className="p-2 rounded-lg border border-white/20 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition"
               title="Nastavení"
               aria-label="Otevřít nastavení"
             >
-              <Settings className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+              <Settings className="w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]" />
             </button>
 
             <div className="relative">
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="flex items-center space-x-2 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+                className="flex items-center space-x-2 p-2 rounded-lg border border-white/20 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition"
                 aria-haspopup="menu"
-                aria-expanded={showMenu ? 'true' : 'false'}
+                aria-expanded={showMenu}
                 aria-label="Otevřít uživatelské menu"
               >
-                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-                  <span className="text-white font-medium text-sm">
+                <div className="w-8 h-8 rounded-full border border-[#f05a28]/40 bg-white/40 text-[#f05a28] flex items-center justify-center">
+                  <span className="font-medium text-sm">
                     {profile?.full_name?.charAt(0).toUpperCase()}
                   </span>
                 </div>
@@ -111,7 +137,7 @@ export const Header = ({ searchQuery, onSearchChange, onOpenSettings, onOpenAdmi
                     className="fixed inset-0 z-10"
                     onClick={() => setShowMenu(false)}
                   />
-                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 z-20">
+                  <div className="absolute right-0 mt-2 w-64 bg-white/95 dark:bg-slate-800 rounded-xl shadow-xl border border-[#f05a28]/40 dark:border-slate-600 z-20 backdrop-blur">
                     <div className="p-4 border-b border-slate-200 dark:border-slate-700">
                       <p className="font-medium text-slate-900 dark:text-white">
                         {profile?.full_name}
@@ -120,7 +146,7 @@ export const Header = ({ searchQuery, onSearchChange, onOpenSettings, onOpenAdmi
                         {profile?.email}
                       </p>
                       {profile?.role === 'admin' && (
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-xs rounded">
+                        <span className="inline-block mt-2 px-2 py-1 rounded-full border border-[#f05a28]/40 bg-white/40 text-[#f05a28] dark:border-[#f05a28]/40 dark:bg-[#f05a28]/30 dark:text-[#ff8b5c] text-xs">
                           Administrátor
                         </span>
                       )}
@@ -130,7 +156,7 @@ export const Header = ({ searchQuery, onSearchChange, onOpenSettings, onOpenAdmi
                         setShowMenu(false);
                         signOut();
                       }}
-                      className="w-full flex items-center space-x-2 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition text-red-600 dark:text-red-400"
+                      className="w-full flex items-center space-x-2 px-4 py-3 text-left rounded-b-xl border-t border-[#f05a28]/30 bg-white/40 backdrop-blur hover:bg-white/60 dark:border-slate-600/60 dark:bg-slate-800/40 dark:hover:bg-slate-800/60 transition text-red-600 dark:text-red-400"
                     >
                       <LogOut className="w-4 h-4" />
                       <span>Odhlásit se</span>

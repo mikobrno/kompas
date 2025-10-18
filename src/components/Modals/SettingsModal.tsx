@@ -49,11 +49,11 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-xl w-full">
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="w-full max-w-2xl rounded-2xl border border-[#f05a28]/30 bg-white/95 dark:bg-slate-900/95 shadow-2xl shadow-[#f05a28]/10">
+        <div className="flex items-center justify-between p-6 border-b border-[#f05a28]/20 dark:border-[#f05a28]/15 bg-white/30 dark:bg-slate-900/40 rounded-t-2xl">
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+            <div className="p-2 rounded-xl bg-[#f05a28]/15 dark:bg-[#f05a28]/25">
               <SettingsIcon />
             </div>
             <div>
@@ -63,11 +63,11 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition"
+            className="p-2 rounded-lg border border-transparent hover:border-[#f05a28]/30 hover:bg-white/40 dark:hover:bg-slate-800/60 transition"
             title="Zavřít"
             aria-label="Zavřít dialog"
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]" />
           </button>
         </div>
 
@@ -80,13 +80,13 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                   Jméno a příjmení
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#f05a28] dark:text-[#ff8b5c]" />
                   <input
                     id="settings-fullname"
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#f05a28]/30 dark:border-slate-600 bg-white/90 dark:bg-slate-800 text-slate-900 dark:text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-[#f05a28]/60 focus:border-[#f05a28]/40 transition"
                     placeholder="Vaše jméno"
                   />
                 </div>
@@ -104,9 +104,9 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
               <button
                 type="button"
                 onClick={() => setTheme('light')}
-                className={`flex items-center space-x-3 border rounded-lg px-4 py-3 transition ${theme === 'light' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-200 dark:border-slate-700'}`}
+                className={`flex items-center space-x-3 rounded-xl px-4 py-3 transition border ${theme === 'light' ? 'border-[#f05a28] bg-[#f05a28]/15 dark:bg-[#f05a28]/25 text-[#f05a28] dark:text-[#ff8b5c]' : 'border-[#f05a28]/25 dark:border-[#f05a28]/20 hover:border-[#f05a28]/40 hover:bg-[#f05a28]/10'}`}
               >
-                <Sun className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                <Sun className="w-4 h-4 text-[#f05a28] dark:text-[#ff8b5c]" />
                 <div className="text-left">
                   <p className="text-sm font-semibold text-slate-900 dark:text-white">Světlý režim</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">Vhodný pro dobře osvětlené prostředí.</p>
@@ -115,9 +115,9 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
               <button
                 type="button"
                 onClick={() => setTheme('dark')}
-                className={`flex items-center space-x-3 border rounded-lg px-4 py-3 transition ${theme === 'dark' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-200 dark:border-slate-700'}`}
+                className={`flex items-center space-x-3 rounded-xl px-4 py-3 transition border ${theme === 'dark' ? 'border-[#f05a28] bg-[#f05a28]/15 dark:bg-[#f05a28]/25 text-[#f05a28] dark:text-[#ff8b5c]' : 'border-[#f05a28]/25 dark:border-[#f05a28]/20 hover:border-[#f05a28]/40 hover:bg-[#f05a28]/10'}`}
               >
-                <Moon className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                <Moon className="w-4 h-4 text-[#f05a28] dark:text-[#ff8b5c]" />
                 <div className="text-left">
                   <p className="text-sm font-semibold text-slate-900 dark:text-white">Tmavý režim</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">Šetří oči i baterii.</p>
@@ -127,21 +127,23 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
           </section>
 
           {message && (
-            <div className="text-sm text-slate-600 dark:text-slate-300">{message}</div>
+            <div className="text-sm text-[#f05a28] dark:text-[#ff8b5c] bg-[#f05a28]/10 dark:bg-[#f05a28]/20 px-4 py-2 rounded-lg">
+              {message}
+            </div>
           )}
 
           <div className="flex justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition text-slate-700 dark:text-slate-300"
+              className="px-4 py-3 rounded-xl border border-[#f05a28]/30 bg-white/70 text-[#f05a28] dark:text-[#ff8b5c] hover:bg-[#f05a28]/15 hover:border-[#f05a28]/50 transition"
             >
               Zavřít
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50"
+              className="px-4 py-3 rounded-xl bg-[#f05a28] hover:bg-[#ff7846] text-white shadow-md transition disabled:opacity-50"
             >
               {saving ? 'Ukládám…' : 'Uložit změny'}
             </button>
@@ -159,7 +161,7 @@ const SettingsIcon = () => (
     fill="none"
     stroke="currentColor"
     strokeWidth="1.5"
-    className="w-5 h-5 text-blue-600 dark:text-blue-400"
+  className="w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]"
   >
     <path
       strokeLinecap="round"

@@ -46,6 +46,7 @@ export type Database = {
           is_archived: boolean;
           display_order: number;
           created_at: string;
+          color_hex: string;
         };
         Insert: {
           id?: string;
@@ -54,6 +55,7 @@ export type Database = {
           is_archived?: boolean;
           display_order?: number;
           created_at?: string;
+          color_hex?: string;
         };
         Update: {
           id?: string;
@@ -62,6 +64,7 @@ export type Database = {
           is_archived?: boolean;
           display_order?: number;
           created_at?: string;
+          color_hex?: string;
         };
       };
       links: {

@@ -1,5 +1,5 @@
 /*
-  # Stopař - Complete Database Schema
+  # Kompas - Complete Database Schema
   
   1. New Tables
     - `users`

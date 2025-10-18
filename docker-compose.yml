@@ -1,9 +1,9 @@
 version: '3.9'
 
 services:
-  stopar-web-dev:
+  kompas-web-dev:
     image: node:20-alpine
-    container_name: stopar-web-dev
+    container_name: kompas-web-dev
     working_dir: /app
     volumes:
       - ./:/app
@@ -14,15 +14,15 @@ services:
       - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
 
-  stopar-web:
+  kompas-web:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
         - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
-    image: stopar-web:latest
-    container_name: stopar-web
+    image: kompas-web:latest
+    container_name: kompas-web
     ports:
       - "8080:80"
     environment:
@@ -31,7 +31,7 @@ services:
 
   supabase:
     image: supabase/postgres:15.1.1.70
-    container_name: stopar-db
+    container_name: kompas-db
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=postgres
