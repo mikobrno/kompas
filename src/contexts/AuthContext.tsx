@@ -1,6 +1,8 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { mintDevJwt } from '../lib/devJwt';
 
 interface UserProfile {
   id: string;
@@ -15,6 +17,8 @@ interface AuthContextType {
   profile: UserProfile | null;
   session: Session | null;
   loading: boolean;
+  impersonatedUserId?: string | null;
+  clearImpersonation: () => void;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
@@ -37,6 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [impersonatedUserId, setImpersonatedUserId] = useState<string | null>(null);
 
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -52,6 +57,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return data;
   };
 
+  const ensureProfileExists = useCallback(async (u: User) => {
+    // Zkus načíst profil, a pokud neexistuje, vytvoř ho
+    const existing = await fetchProfile(u.id);
+    if (existing) return existing as UserProfile;
+
+    const meta: Record<string, unknown> | undefined = (u as unknown as { user_metadata?: Record<string, unknown> }).user_metadata;
+    const metaFullName = typeof meta?.full_name === 'string' ? (meta.full_name as string) : undefined;
+    const metaName = typeof meta?.name === 'string' ? (meta.name as string) : undefined;
+    const fallbackName = metaFullName || metaName || (u.email ? u.email.split('@')[0] : 'Uživatel');
+
+    const { error: insertErr } = await supabase
+      .from('users')
+      .insert({
+        id: u.id,
+        email: u.email || '',
+        full_name: fallbackName,
+        role: 'user',
+        theme: 'light',
+      });
+    if (insertErr) {
+      // Může nastat závod / RLS, zkusíme načíst ještě jednou
+      console.warn('Profile insert failed (will retry fetch):', insertErr.message);
+    }
+    const created = await fetchProfile(u.id);
+    return created as UserProfile | null;
+  }, []);
+
   const refreshProfile = async () => {
     if (user) {
       const profileData = await fetchProfile(user.id);
@@ -60,12 +92,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    const storedImpersonation = localStorage.getItem('impersonateUserId');
+    if (storedImpersonation) setImpersonatedUserId(storedImpersonation);
     supabase.auth.getSession().then(({ data: { session } }) => {
       (async () => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          const profileData = await fetchProfile(session.user.id);
+          const profileData = await ensureProfileExists(session.user);
           setProfile(profileData);
         }
         setLoading(false);
@@ -77,7 +111,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          const profileData = await fetchProfile(session.user.id);
+          const profileData = await ensureProfileExists(session.user);
           setProfile(profileData);
         } else {
           setProfile(null);
@@ -86,13 +120,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [ensureProfileExists]);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    // Dev fallback: pokud místní GoTrue selže (např. Database error querying schema),
+    // umožníme přihlášení mintnutím JWT a nastavením session manuálně.
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (!error) return { error: null };
+
+    if (import.meta.env.DEV && email === 'milan@example.com' && password === 'milan123') {
+      try {
+  const jwtSecret = (import.meta as unknown as { env: Record<string, string | undefined> }).env.VITE_SUPABASE_JWT_SECRET;
+        if (!jwtSecret) return { error };
+
+  // Zjistíme userId pomocí SECURITY DEFINER RPC, aby nás neblokovalo RLS
+  const { data: userId } = await supabase.rpc('dev_get_user_id_by_email', { p_email: email });
+        if (!userId) return { error };
+
+        const access_token = await mintDevJwt({ jwtSecret, userId, email });
+        const refresh_token = await mintDevJwt({ jwtSecret, userId, email, expiresInSeconds: 60 * 60 * 24 * 7 });
+        const { error: setSessionError } = await supabase.auth.setSession({ access_token, refresh_token });
+        if (setSessionError) {
+          console.error('Dev fallback setSession failed', setSessionError.message);
+          return { error };
+        }
+        return { error: null };
+      } catch (fallbackErr) {
+        console.error('Dev fallback failed', fallbackErr);
+        return { error };
+      }
+    }
     return { error };
   };
 
@@ -128,6 +185,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setProfile(null);
     setSession(null);
+    setImpersonatedUserId(null);
+    localStorage.removeItem('impersonateUserId');
   };
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
@@ -153,6 +212,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         profile,
         session,
         loading,
+        impersonatedUserId,
+        clearImpersonation: () => { setImpersonatedUserId(null); localStorage.removeItem('impersonateUserId'); },
         signIn,
         signUp,
         signOut,

@@ -21,30 +21,38 @@ export const AddCategoryModal = ({ isOpen, onClose, onSuccess }: AddCategoryModa
     if (!user) return;
 
     setLoading(true);
+    try {
+      const { data: categories, error: orderErr } = await supabase
+        .from('categories')
+        .select('display_order')
+        .eq('owner_id', user.id)
+        .order('display_order', { ascending: false })
+        .limit(1);
 
-    const { data: categories } = await supabase
-      .from('categories')
-      .select('display_order')
-      .eq('owner_id', user.id)
-      .order('display_order', { ascending: false })
-      .limit(1);
+      const nextOrder = !orderErr && categories && categories.length > 0 ? categories[0].display_order + 1 : 0;
 
-    const nextOrder = categories && categories.length > 0 ? categories[0].display_order + 1 : 0;
+      const { error } = await supabase
+        .from('categories')
+        .insert({
+          name,
+          owner_id: user.id,
+          display_order: nextOrder,
+        });
 
-    const { error } = await supabase
-      .from('categories')
-      .insert({
-        name,
-        owner_id: user.id,
-        display_order: nextOrder,
-      });
+      if (error) {
+        console.error('Create category failed:', error);
+        alert(`Nepodařilo se vytvořit kategorii: ${error.message || 'neznámá chyba'}`);
+        return;
+      }
 
-    setLoading(false);
-
-    if (!error) {
       setName('');
       onClose();
       onSuccess();
+    } catch (err) {
+      console.error('Create category unexpected error:', err);
+      alert('Nepodařilo se vytvořit kategorii (neočekávaná chyba). Viz konzole.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -58,6 +66,8 @@ export const AddCategoryModal = ({ isOpen, onClose, onSuccess }: AddCategoryModa
           <button
             onClick={onClose}
             className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition"
+            title="Zavřít"
+            aria-label="Zavřít dialog"
           >
             <X className="w-5 h-5 text-slate-500" />
           </button>

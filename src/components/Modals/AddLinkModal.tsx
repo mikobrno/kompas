@@ -30,6 +30,21 @@ export const AddLinkModal = ({ isOpen, categoryId, onClose, onSuccess }: AddLink
     e.preventDefault();
     setLoading(true);
 
+    // Ověření duplicity URL v rámci kategorie
+    const urlTrimmed = url.trim();
+    const { data: duplicate } = await supabase
+      .from('links')
+      .select('id')
+      .eq('category_id', categoryId)
+      .eq('url', urlTrimmed)
+      .limit(1);
+
+    if (duplicate && duplicate.length > 0) {
+      alert('Odkaz s touto URL již v této kategorii existuje.');
+      setLoading(false);
+      return;
+    }
+
     const { data: links } = await supabase
       .from('links')
       .select('display_order')
@@ -39,14 +54,14 @@ export const AddLinkModal = ({ isOpen, categoryId, onClose, onSuccess }: AddLink
 
     const nextOrder = links && links.length > 0 ? links[0].display_order + 1 : 0;
 
-    const faviconUrl = getFaviconUrl(url);
+  const faviconUrl = getFaviconUrl(urlTrimmed);
 
     const { data: newLink, error: linkError } = await supabase
       .from('links')
       .insert({
         category_id: categoryId,
         display_name: displayName,
-        url,
+  url: urlTrimmed,
         favicon_url: faviconUrl,
         display_order: nextOrder,
       })
@@ -95,7 +110,7 @@ export const AddLinkModal = ({ isOpen, categoryId, onClose, onSuccess }: AddLink
 
     setLoading(false);
     setDisplayName('');
-    setUrl('');
+  setUrl('');
     setTags('');
     onClose();
     onSuccess();
@@ -111,6 +126,8 @@ export const AddLinkModal = ({ isOpen, categoryId, onClose, onSuccess }: AddLink
           <button
             onClick={onClose}
             className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition"
+            title="Zavřít"
+            aria-label="Zavřít dialog"
           >
             <X className="w-5 h-5 text-slate-500" />
           </button>

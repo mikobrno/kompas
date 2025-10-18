@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import type { DragEvent } from 'react';
 import { Plus, FolderPlus } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -8,15 +9,22 @@ import { CategoryCard } from './CategoryCard';
 import { AddCategoryModal } from '../Modals/AddCategoryModal';
 import { AddLinkModal } from '../Modals/AddLinkModal';
 import { ShareCategoryModal } from '../Modals/ShareCategoryModal';
+import { ShareLinkModal } from '../Modals/ShareLinkModal';
 import { AdminPanel } from '../Admin/AdminPanel';
+import { EditCategoryModal } from '../Modals/EditCategoryModal';
+import { EditLinkModal } from '../Modals/EditLinkModal';
+import { SettingsModal } from '../Modals/SettingsModal';
+import { filterCategories } from '../../lib/search';
 
 interface Link {
   id: string;
   display_name: string;
   url: string;
   favicon_url: string | null;
+  is_archived: boolean;
   display_order: number;
   tags?: { name: string }[];
+  isSharedLink?: boolean;
 }
 
 interface Category {
@@ -27,148 +35,207 @@ interface Category {
   display_order: number;
   links: Link[];
   isShared?: boolean;
-  permission?: 'viewer' | 'editor';
+  permission?: 'viewer' | 'editor' | 'owner';
+  sharedLinkIds?: string[] | null;
 }
 
+// Types for Supabase responses with nested relations
+type DbLinkWithTags = {
+  id: string;
+  display_name: string;
+  url: string;
+  favicon_url: string | null;
+  is_archived?: boolean;
+  display_order: number;
+  category_id: string;
+  link_tags?: { tags: { name: string } }[];
+};
+
+// (unused legacy type removed)
+
+type RpcCategoryRow = {
+  id: string;
+  name: string;
+  owner_id: string;
+  is_archived: boolean;
+  display_order: number;
+  created_at: string;
+  permission: 'viewer' | 'editor' | 'owner' | null;
+  shared_link_ids: string[] | null;
+};
+
 export const Dashboard = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, impersonatedUserId } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showAddLink, setShowAddLink] = useState<string | null>(null);
   const [shareCategoryId, setShareCategoryId] = useState<string | null>(null);
+  const [shareLink, setShareLink] = useState<{ id: string; name: string } | null>(null);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [editCategory, setEditCategory] = useState<{ id: string; name: string } | null>(null);
+  const [editLinkId, setEditLinkId] = useState<string | null>(null);
+  const refreshTimerRef = useRef<number | null>(null);
 
-  const loadCategories = async () => {
+  const previewUserId = impersonatedUserId && impersonatedUserId !== user?.id ? impersonatedUserId : null;
+
+  // Throttle pro refresh, aby se více změn sloučilo do jedné
+  const scheduleRefresh = useCallback(() => {
+    if (refreshTimerRef.current != null) return;
+    refreshTimerRef.current = window.setTimeout(() => {
+      setRefreshKey((k: number) => k + 1);
+      refreshTimerRef.current = null;
+    }, 300);
+  }, []);
+
+  const loadCategories = useCallback(async () => {
     if (!user) return;
+    // 1) Získej přístupné kategorie s oprávněním pomocí RPC
+    const rpcArgs = previewUserId ? { override_user_id: previewUserId } : undefined;
+    const { data: rpcCategories, error: rpcError } = await supabase
+      .rpc('get_accessible_categories_with_permission', rpcArgs);
 
-    const { data: ownCategories, error: ownError } = await supabase
-      .from('categories')
-      .select(`
-        *,
-        links (
-          id,
-          display_name,
-          url,
-          favicon_url,
-          display_order,
-          link_tags (
-            tags (
-              name
-            )
-          )
-        )
-      `)
-      .eq('owner_id', user.id)
-      .eq('is_archived', false)
-      .order('display_order');
-
-    if (ownError) {
-      console.error('Error loading own categories:', ownError);
+    if (rpcError) {
+      console.error('Error loading accessible categories via RPC:', rpcError);
       return;
     }
 
-    const { data: shares, error: sharesError } = await supabase
-      .from('category_shares')
-      .select(`
-        permission_level,
-        categories (
-          id,
-          name,
-          owner_id,
-          is_archived,
-          display_order,
-          links (
-            id,
-            display_name,
-            url,
-            favicon_url,
-            display_order,
-            link_tags (
-              tags (
-                name
-              )
-            )
-          )
-        )
-      `)
-      .or(`shared_with_user_id.eq.${user.id},shared_with_group_id.in.(${await getUserGroupIds()})`);
-
-    if (sharesError) {
-      console.error('Error loading shared categories:', sharesError);
+    const viewerId = previewUserId || user.id;
+    const cats = (rpcCategories || []) as RpcCategoryRow[];
+    if (cats.length === 0) {
+      setCategories([]);
+      return;
     }
 
-    const processedOwn = (ownCategories || []).map(cat => ({
-      ...cat,
-      links: (cat.links || [])
-        .map((link: any) => ({
-          ...link,
-          tags: link.link_tags?.map((lt: any) => ({ name: lt.tags.name })) || [],
+    // 2) Načti všechny odkazy s tagy pro dané kategorie jedním dotazem
+    const categoryIds = cats.map((c) => c.id);
+    const { data: linksData, error: linksError } = await supabase
+      .from('links')
+      .select(`
+        id,
+        display_name,
+        url,
+        favicon_url,
+        is_archived,
+        display_order,
+        category_id,
+        link_tags ( tags ( name ) )
+      `)
+      .in('category_id', categoryIds)
+      .order('display_order');
+
+    if (linksError) {
+      console.error('Error loading links for categories:', linksError);
+      return;
+    }
+
+    const linksByCategory = new Map<string, DbLinkWithTags[]>();
+    (linksData as unknown as DbLinkWithTags[]).forEach((l) => {
+      const arr = linksByCategory.get(l.category_id) || [];
+      arr.push(l);
+      linksByCategory.set(l.category_id, arr);
+    });
+
+    // 3) Sestav finální strukturu s linky a tagy
+    const processed: Category[] = cats.map((c) => {
+      const permission = (c.permission ?? undefined) as Category['permission'];
+      const allowedLinkIds = Array.isArray(c.shared_link_ids) && c.shared_link_ids.length > 0 ? c.shared_link_ids : null;
+      const links = (linksByCategory.get(c.id) || [])
+        .map((link) => ({
+          id: link.id,
+          display_name: link.display_name,
+          url: link.url,
+          favicon_url: link.favicon_url,
+          is_archived: (link as unknown as { is_archived?: boolean }).is_archived ?? false,
+          display_order: link.display_order,
+          tags: link.link_tags?.map((lt) => ({ name: lt.tags.name })) || [],
+          isSharedLink: !!allowedLinkIds && allowedLinkIds.includes(link.id),
         }))
-        .sort((a: Link, b: Link) => a.display_order - b.display_order),
-    }));
+        .filter((link) => {
+          if (!allowedLinkIds) return true;
+          return allowedLinkIds.includes(link.id);
+        })
+        .sort((a, b) => a.display_order - b.display_order);
+      return {
+        id: c.id,
+        name: c.name,
+        owner_id: c.owner_id,
+        is_archived: c.is_archived,
+        display_order: c.display_order,
+        links,
+        isShared: viewerId ? c.owner_id !== viewerId : true,
+        permission,
+        sharedLinkIds: allowedLinkIds,
+      };
+    });
 
-    const processedShared = (shares || [])
-      .filter(share => share.categories && !share.categories.is_archived)
-      .map(share => ({
-        ...(share.categories as any),
-        isShared: true,
-        permission: share.permission_level,
-        links: ((share.categories as any).links || [])
-          .map((link: any) => ({
-            ...link,
-            tags: link.link_tags?.map((lt: any) => ({ name: lt.tags.name })) || [],
-          }))
-          .sort((a: Link, b: Link) => a.display_order - b.display_order),
-      }));
-
-    setCategories([...processedOwn, ...processedShared]);
-  };
-
-  const getUserGroupIds = async (): Promise<string> => {
-    if (!user) return '';
-
-    const { data } = await supabase
-      .from('group_members')
-      .select('group_id')
-      .eq('user_id', user.id);
-
-    return data?.map(gm => gm.group_id).join(',') || '';
-  };
+    setCategories(processed);
+  }, [user, previewUserId]);
 
   useEffect(() => {
     loadCategories();
-  }, [user, refreshKey]);
+  }, [user, refreshKey, loadCategories]);
 
-  const filteredCategories = useMemo(() => {
-    if (!searchQuery.trim()) return categories;
+  // Demo autoseed odstraněn – aplikace běží pouze na reálných datech z DB
 
-    const query = searchQuery.toLowerCase();
+  // Realtime subscriptions to auto-refresh
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('realtime-dashboard')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, scheduleRefresh)
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'links' }, scheduleRefresh)
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'link_tags' }, scheduleRefresh)
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'category_shares' }, scheduleRefresh)
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'link_shares' }, scheduleRefresh)
+      .subscribe();
 
-    return categories
-      .map(category => {
-        const categoryMatches = category.name.toLowerCase().includes(query);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, scheduleRefresh]);
 
-        const filteredLinks = category.links.filter(link => {
-          const nameMatches = link.display_name.toLowerCase().includes(query);
-          const urlMatches = link.url.toLowerCase().includes(query);
-          const tagsMatch = link.tags?.some(tag => tag.name.toLowerCase().includes(query));
+  // Drag & drop reordering for categories
+  const onCategoryDragStart = useCallback((e: DragEvent<HTMLDivElement>, id: string) => {
+    e.dataTransfer.setData('text/category-id', id);
+  }, []);
 
-          return nameMatches || urlMatches || tagsMatch;
-        });
+  const onCategoryDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  }, []);
 
-        if (categoryMatches || filteredLinks.length > 0) {
-          return {
-            ...category,
-            links: categoryMatches ? category.links : filteredLinks,
-          };
-        }
+  const onCategoryDrop = useCallback(async (e: DragEvent<HTMLDivElement>, targetId: string) => {
+    e.preventDefault();
+    const draggedId = e.dataTransfer.getData('text/category-id');
+    if (!draggedId || draggedId === targetId) return;
 
-        return null;
-      })
-      .filter((cat): cat is Category => cat !== null);
-  }, [categories, searchQuery]);
+  const idxFrom = categories.findIndex((c: Category) => c.id === draggedId);
+  const idxTo = categories.findIndex((c: Category) => c.id === targetId);
+    if (idxFrom === -1 || idxTo === -1) return;
+
+    const prevOrder = [...categories];
+    const newOrder = [...categories];
+    const [moved] = newOrder.splice(idxFrom, 1);
+    newOrder.splice(idxTo, 0, moved);
+    setCategories(newOrder);
+
+    // Persist display_order for own categories only; shared categories order is per owner, so we don't update them
+    try {
+      const own = newOrder.filter((c: Category) => c.owner_id === user?.id);
+      await Promise.all(
+        own.map((cat, index: number) =>
+          supabase.from('categories').update({ display_order: index }).eq('id', cat.id)
+        )
+      );
+    } catch (err) {
+      console.error('Failed to persist category order, reverting...', err);
+      setCategories(prevOrder);
+    }
+  }, [categories, user]);
+
+  const filteredCategories = useMemo(() => filterCategories(categories, searchQuery), [categories, searchQuery]);
 
   const handleDeleteCategory = async (categoryId: string) => {
     if (!confirm('Opravdu chcete smazat tuto kategorii a všechny její odkazy?')) return;
@@ -179,7 +246,7 @@ export const Dashboard = () => {
       .eq('id', categoryId);
 
     if (!error) {
-      setRefreshKey(k => k + 1);
+  setRefreshKey((k: number) => k + 1);
     }
   };
 
@@ -190,19 +257,19 @@ export const Dashboard = () => {
       .eq('id', categoryId);
 
     if (!error) {
-      setRefreshKey(k => k + 1);
+  setRefreshKey((k: number) => k + 1);
     }
   };
 
-  const ownCategories = filteredCategories.filter(cat => cat.owner_id === user?.id);
-  const sharedCategories = filteredCategories.filter(cat => cat.isShared);
+  const ownCategories = filteredCategories.filter((cat: Category) => !cat.isShared);
+  const sharedCategories = filteredCategories.filter((cat: Category) => cat.isShared);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <Header
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        onOpenSettings={() => {}}
+        onOpenSettings={() => setShowSettings(true)}
         onOpenAdmin={profile?.role === 'admin' ? () => setShowAdmin(true) : undefined}
       />
 
@@ -225,15 +292,24 @@ export const Dashboard = () => {
               Moje kategorie
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {ownCategories.map(category => (
-                <div key={category.id} className="relative">
+              {ownCategories.map((category: Category) => (
+                <div
+                  key={category.id}
+                  className="relative"
+                  draggable
+                  onDragStart={(e: DragEvent<HTMLDivElement>) => onCategoryDragStart(e, category.id)}
+                  onDragOver={onCategoryDragOver}
+                  onDrop={(e: DragEvent<HTMLDivElement>) => onCategoryDrop(e, category.id)}
+                >
                   <CategoryCard
                     category={category}
-                    onEdit={() => {}}
+                    onEdit={(cat: Category) => setEditCategory({ id: cat.id, name: cat.name })}
                     onDelete={handleDeleteCategory}
-                    onShare={() => setShareCategoryId(category.id)}
+                    onShare={(cat: Category) => setShareCategoryId(cat.id)}
                     onArchive={handleArchiveCategory}
-                    onRefresh={() => setRefreshKey(k => k + 1)}
+                    onRefresh={() => setRefreshKey((k: number) => k + 1)}
+                    onEditLink={(id: string) => setEditLinkId(id)}
+                    onShareLink={(linkId: string, linkName: string) => setShareLink({ id: linkId, name: linkName })}
                   />
                   <button
                     onClick={() => setShowAddLink(category.id)}
@@ -254,17 +330,19 @@ export const Dashboard = () => {
               Sdíleno se mnou
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {sharedCategories.map(category => (
+              {sharedCategories.map((category: Category) => (
                 <div key={category.id} className="relative">
                   <CategoryCard
                     category={category}
-                    onEdit={() => {}}
+                    onEdit={(cat: Category) => setEditCategory({ id: cat.id, name: cat.name })}
                     onDelete={handleDeleteCategory}
-                    onShare={() => {}}
+                    onShare={(cat: Category) => setShareCategoryId(cat.id)}
                     onArchive={handleArchiveCategory}
-                    onRefresh={() => setRefreshKey(k => k + 1)}
+                    onRefresh={() => setRefreshKey((k: number) => k + 1)}
+                    onEditLink={(id: string) => setEditLinkId(id)}
+                    onShareLink={(linkId: string, linkName: string) => setShareLink({ id: linkId, name: linkName })}
                   />
-                  {category.permission === 'editor' && (
+                  {(category.permission === 'editor' || profile?.role === 'admin') && (
                     <button
                       onClick={() => setShowAddLink(category.id)}
                       className="absolute bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-lg transition"
@@ -304,7 +382,7 @@ export const Dashboard = () => {
       <AddCategoryModal
         isOpen={showAddCategory}
         onClose={() => setShowAddCategory(false)}
-        onSuccess={() => setRefreshKey(k => k + 1)}
+  onSuccess={() => setRefreshKey((k: number) => k + 1)}
       />
 
       {showAddLink && (
@@ -312,7 +390,7 @@ export const Dashboard = () => {
           isOpen={true}
           categoryId={showAddLink}
           onClose={() => setShowAddLink(null)}
-          onSuccess={() => setRefreshKey(k => k + 1)}
+          onSuccess={() => setRefreshKey((k: number) => k + 1)}
         />
       )}
 
@@ -324,8 +402,42 @@ export const Dashboard = () => {
         />
       )}
 
+      {shareLink && (
+        <ShareLinkModal
+          isOpen={true}
+          linkId={shareLink.id}
+          linkName={shareLink.name}
+          onClose={() => setShareLink(null)}
+          onSaved={() => setRefreshKey((k: number) => k + 1)}
+        />
+      )}
+
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
+
       {profile?.role === 'admin' && (
         <AdminPanel isOpen={showAdmin} onClose={() => setShowAdmin(false)} />
+      )}
+
+      {editCategory && (
+        <EditCategoryModal
+          isOpen={true}
+          categoryId={editCategory.id}
+          initialName={editCategory.name}
+          onClose={() => setEditCategory(null)}
+          onSuccess={() => setRefreshKey((k: number) => k + 1)}
+        />
+      )}
+
+      {editLinkId && (
+        <EditLinkModal
+          isOpen={true}
+          linkId={editLinkId}
+          onClose={() => setEditLinkId(null)}
+          onSuccess={() => setRefreshKey((k: number) => k + 1)}
+        />
       )}
     </div>
   );

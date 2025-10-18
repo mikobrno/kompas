@@ -71,6 +71,7 @@ export type Database = {
           display_name: string;
           url: string;
           favicon_url: string | null;
+          is_archived: boolean;
           display_order: number;
           created_at: string;
         };
@@ -80,6 +81,7 @@ export type Database = {
           display_name: string;
           url: string;
           favicon_url?: string | null;
+          is_archived?: boolean;
           display_order?: number;
           created_at?: string;
         };
@@ -89,6 +91,7 @@ export type Database = {
           display_name?: string;
           url?: string;
           favicon_url?: string | null;
+          is_archived?: boolean;
           display_order?: number;
           created_at?: string;
         };
@@ -175,6 +178,32 @@ export type Database = {
         Update: {
           id?: string;
           category_id?: string;
+          shared_with_user_id?: string | null;
+          shared_with_group_id?: string | null;
+          permission_level?: 'viewer' | 'editor';
+          created_at?: string;
+        };
+      };
+      link_shares: {
+        Row: {
+          id: string;
+          link_id: string;
+          shared_with_user_id: string | null;
+          shared_with_group_id: string | null;
+          permission_level: 'viewer' | 'editor';
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          link_id: string;
+          shared_with_user_id?: string | null;
+          shared_with_group_id?: string | null;
+          permission_level: 'viewer' | 'editor';
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          link_id?: string;
           shared_with_user_id?: string | null;
           shared_with_group_id?: string | null;
           permission_level?: 'viewer' | 'editor';

@@ -7,8 +7,10 @@ interface LoginFormProps {
 }
 
 export const LoginForm = ({ onToggleForm }: LoginFormProps) => {
-  const [email, setEmail] = useState('admin@stopar.cz');
-  const [password, setPassword] = useState('admin123');
+  const isDev = import.meta.env.DEV;
+  // Dev-only autofill admin credentials to allow one-click login
+  const [email, setEmail] = useState(isDev ? 'milan@example.com' : '');
+  const [password, setPassword] = useState(isDev ? 'milan123' : '');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
@@ -19,10 +21,7 @@ export const LoginForm = ({ onToggleForm }: LoginFormProps) => {
     setLoading(true);
 
     const { error } = await signIn(email, password);
-
-    if (error) {
-      setError(error.message);
-    }
+    if (error) setError(error.message);
 
     setLoading(false);
   };
@@ -42,6 +41,11 @@ export const LoginForm = ({ onToggleForm }: LoginFormProps) => {
         <p className="text-center text-slate-600 dark:text-slate-400 mb-8">
           Přihlaste se do firemního rozcestníku
         </p>
+        {isDev && (
+          <div className="mb-4 text-xs text-center text-slate-500 dark:text-slate-400">
+            Dev mód: pole jsou předvyplněna pro admina (milan@example.com / milan123)
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Users, User } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -20,29 +20,18 @@ interface GroupOption {
   name: string;
 }
 
-interface Share {
-  id: string;
-  shared_with_user_id: string | null;
-  shared_with_group_id: string | null;
-  permission_level: 'viewer' | 'editor';
-}
 
 export const ShareCategoryModal = ({ isOpen, categoryId, onClose }: ShareCategoryModalProps) => {
   const { user } = useAuth();
   const [users, setUsers] = useState<UserOption[]>([]);
   const [groups, setGroups] = useState<GroupOption[]>([]);
-  const [shares, setShares] = useState<Share[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
   const [permissions, setPermissions] = useState<Map<string, 'viewer' | 'editor'>>(new Map());
+  const [userSearch, setUserSearch] = useState('');
+  const [groupSearch, setGroupSearch] = useState('');
 
-  useEffect(() => {
-    if (isOpen) {
-      loadData();
-    }
-  }, [isOpen]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const { data: usersData } = await supabase
       .from('users')
       .select('id, full_name, email')
@@ -59,7 +48,6 @@ export const ShareCategoryModal = ({ isOpen, categoryId, onClose }: ShareCategor
 
     setUsers(usersData || []);
     setGroups(groupsData || []);
-    setShares(sharesData || []);
 
     const newSelectedUsers = new Set<string>();
     const newSelectedGroups = new Set<string>();
@@ -79,7 +67,13 @@ export const ShareCategoryModal = ({ isOpen, categoryId, onClose }: ShareCategor
     setSelectedUsers(newSelectedUsers);
     setSelectedGroups(newSelectedGroups);
     setPermissions(newPermissions);
-  };
+  }, [categoryId, user?.id]);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadData();
+    }
+  }, [isOpen, loadData]);
 
   const handleToggleUser = (userId: string) => {
     const newSelected = new Set(selectedUsers);
@@ -166,6 +160,8 @@ export const ShareCategoryModal = ({ isOpen, categoryId, onClose }: ShareCategor
           <button
             onClick={onClose}
             className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition"
+            title="Zavřít"
+            aria-label="Zavřít dialog"
           >
             <X className="w-5 h-5 text-slate-500" />
           </button>
@@ -178,8 +174,24 @@ export const ShareCategoryModal = ({ isOpen, categoryId, onClose }: ShareCategor
                 <User className="w-5 h-5 text-slate-600 dark:text-slate-400" />
                 <h4 className="font-medium text-slate-900 dark:text-white">Uživatelé</h4>
               </div>
+              <div className="mb-3">
+                <input
+                  type="text"
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  placeholder="Hledat uživatele..."
+                  className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm"
+                  aria-label="Hledat uživatele"
+                />
+              </div>
               <div className="space-y-2">
-                {users.map(userOption => {
+                {users
+                  .filter(u =>
+                    userSearch.trim()
+                      ? (u.full_name + ' ' + u.email).toLowerCase().includes(userSearch.toLowerCase())
+                      : true
+                  )
+                  .map(userOption => {
                   const isSelected = selectedUsers.has(userOption.id);
                   const permission = permissions.get(`user-${userOption.id}`) || 'viewer';
 
@@ -210,6 +222,7 @@ export const ShareCategoryModal = ({ isOpen, categoryId, onClose }: ShareCategor
                           value={permission}
                           onChange={(e) => handlePermissionChange(`user-${userOption.id}`, e.target.value as 'viewer' | 'editor')}
                           className="ml-4 px-3 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm"
+                          aria-label={`Oprávnění pro uživatele ${userOption.full_name}`}
                         >
                           <option value="viewer">Čtenář</option>
                           <option value="editor">Editor</option>
@@ -228,8 +241,24 @@ export const ShareCategoryModal = ({ isOpen, categoryId, onClose }: ShareCategor
                 <Users className="w-5 h-5 text-slate-600 dark:text-slate-400" />
                 <h4 className="font-medium text-slate-900 dark:text-white">Skupiny</h4>
               </div>
+              <div className="mb-3">
+                <input
+                  type="text"
+                  value={groupSearch}
+                  onChange={(e) => setGroupSearch(e.target.value)}
+                  placeholder="Hledat skupiny..."
+                  className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm"
+                  aria-label="Hledat skupiny"
+                />
+              </div>
               <div className="space-y-2">
-                {groups.map(group => {
+                {groups
+                  .filter(g =>
+                    groupSearch.trim()
+                      ? g.name.toLowerCase().includes(groupSearch.toLowerCase())
+                      : true
+                  )
+                  .map(group => {
                   const isSelected = selectedGroups.has(group.id);
                   const permission = permissions.get(`group-${group.id}`) || 'viewer';
 
@@ -255,6 +284,7 @@ export const ShareCategoryModal = ({ isOpen, categoryId, onClose }: ShareCategor
                           value={permission}
                           onChange={(e) => handlePermissionChange(`group-${group.id}`, e.target.value as 'viewer' | 'editor')}
                           className="ml-4 px-3 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm"
+                          aria-label={`Oprávnění pro skupinu ${group.name}`}
                         >
                           <option value="viewer">Čtenář</option>
                           <option value="editor">Editor</option>

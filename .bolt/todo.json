@@ -1,0 +1,50 @@
+[
+	{
+		"id": 1,
+		"title": "Přidat mazání odkazu",
+		"description": "Rozšířit menu v `CategoryCard.tsx` o možnost smazat odkaz a ověřit Supabase delete",
+			"status": "completed"
+	},
+	{
+		"id": 2,
+		"title": "Aktualizovat data po smazání",
+		"description": "Po odstranění odkazu obnovit lokální stav a pinned seznam",
+			"status": "completed"
+	},
+	{
+		"id": 3,
+		"title": "Ověřit lint a testy",
+		"description": "Spustit `npm run lint` a `npm run test:run`",
+		"status": "completed"
+	},
+	{
+		"id": 4,
+		"title": "Obnovit zobrazení kategorií",
+		"description": "Zjistit, proč se kategorie nezobrazují (pravděpodobně filtr při impersonaci), upravit logiku a ověřit načítání",
+		"status": "completed"
+	},
+	{
+		"id": 5,
+		"title": "Zpřístupnit editaci a mazání odkazů",
+		"description": "Upravit OR oprávnění v `CategoryCard` a předávání handlerů v `Dashboard`, přidat is_archived do mapování a otestovat menu",
+		"status": "completed"
+	},
+	{
+		"id": 6,
+		"title": "Aplikovat migrace přes Supabase CLI",
+		"description": "Spustit `supabase migration up` a doladit skripty tak, aby prošly na Docker instanci",
+		"status": "completed"
+	},
+	{
+		"id": 7,
+		"title": "Zavést sdílení odkazů",
+		"description": "Přidat tabulku link_shares, upravit RLS, vytvořit modal a napojit na UI",
+		"status": "in-progress"
+	},
+	{
+		"id": 8,
+		"title": "Reset sdílení kategorií",
+		"description": "Do migrace přidat vymazání stávajících záznamů v category_shares, aby nikdo neměl sdílený obsah",
+		"status": "in-progress"
+	}
+]
