@@ -23,6 +23,8 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // Ignorovat pravidlo o inline stylech - legitimní pro dynamické barvy
+      'no-inline-styles/no-inline-styles': 'off',
     },
   }
 );

@@ -1,4 +1,3 @@
-/* eslint-disable no-inline-styles/no-inline-styles */
 import { useEffect, useMemo, useState } from 'react';
 import type { DragEvent } from 'react';
 import { MoreVertical, Edit2, Trash2, Share2, Archive, Pin, UserPlus, Users, ChevronDown } from 'lucide-react';

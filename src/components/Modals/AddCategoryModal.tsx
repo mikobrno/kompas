@@ -12,7 +12,7 @@ interface AddCategoryModalProps {
 }
 
 export const AddCategoryModal = ({ isOpen, onClose, onSuccess }: AddCategoryModalProps) => {
-  const { user } = useAuth();
+  const { user, impersonatedUserId } = useAuth();
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [color, setColor] = useState(DEFAULT_CATEGORY_COLOR);
@@ -21,14 +21,15 @@ export const AddCategoryModal = ({ isOpen, onClose, onSuccess }: AddCategoryModa
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    const effectiveOwnerId = impersonatedUserId && impersonatedUserId !== user?.id ? impersonatedUserId : user?.id;
+    if (!effectiveOwnerId) return;
 
     setLoading(true);
     try {
       const { data: categories, error: orderErr } = await supabase
         .from('categories')
         .select('display_order')
-        .eq('owner_id', user.id)
+        .eq('owner_id', effectiveOwnerId)
         .order('display_order', { ascending: false })
         .limit(1);
 
@@ -38,7 +39,7 @@ export const AddCategoryModal = ({ isOpen, onClose, onSuccess }: AddCategoryModa
         .from('categories')
         .insert({
           name,
-          owner_id: user.id,
+          owner_id: effectiveOwnerId,
           display_order: nextOrder,
           color_hex: normalizeHexColor(color),
         });

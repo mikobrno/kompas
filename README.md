@@ -1,21 +1,17 @@
 Kompas
 
 Lokální běh bez mocků a bez demo dat
-1) Nastav .env.local (nebo exportuj proměnné při spuštění):
-	- VITE_SUPABASE_URL=http://127.0.0.1:54321
-	- VITE_SUPABASE_ANON_KEY=<ANON KEY ZE SUPABASE>
-	- VITE_SUPABASE_JWT_SECRET=<JWT SECRET ZE SUPABASE>
+1) Nakopíruj `.env.example` do `.env` a případně uprav hodnoty.
 
-2) Spusť Docker služby (DB + web dev):
-	- docker compose up -d supabase
-	- docker compose up kompas-web-dev
+2) Spusť komplet vývojové prostředí v Dockeru (Supabase + frontend build):
+	- docker compose up --build
 
-3) Aplikuj migrace do lokální DB (doporučeno Supabase CLI nebo psql):
-	- supabase db push
-	nebo
-	- psql "postgres://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/migrations/<soubor>.sql
+   *Front-end se servíruje na http://127.0.0.1:8080, Supabase API na http://127.0.0.1:54321, Studio na http://127.0.0.1:54323.*
 
-4) Spusť web lokálně bez demo/autoseed (žádná mock data nejsou používána).
+3) Migrace se aplikují automaticky pomocí služby `migrations`. Pokud potřebuješ ruční push, můžeš spustit:
+	- docker compose run --rm migrations
+
+4) Volitelně můžeš dál vyvíjet přes Vite dev server mimo Docker (hot reload):
 	- npm run dev
 
 Poznámky
