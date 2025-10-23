@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const url = process.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
 const anon = process.env.VITE_SUPABASE_ANON_KEY || '';
-const email = process.env.TEST_EMAIL || 'milan@example.com';
+const email = process.env.TEST_EMAIL || 'kost@adminreal.cz';
 const password = process.env.TEST_PASSWORD || 'milan123';
 
 if (!anon) {

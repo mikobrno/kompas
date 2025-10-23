@@ -6,7 +6,7 @@ const SUPABASE_ANON = process.env.VITE_SUPABASE_ANON_KEY;
 const SUPABASE_SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET || 'super-secret-jwt-token-with-at-least-32-characters-long';
 // Defaults match seeded migration 20251018100000_seed_initial_users.sql
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'milan@example.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'kost@adminreal.cz';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'milan123';
 
 if (!SUPABASE_URL || !SUPABASE_ANON) {
@@ -65,13 +65,13 @@ async function ensurePublicUser(email, fullName, role = 'user') {
 }
 
 async function getAdminIdentity() {
-  // find Milan in public.users
+  // find Kost (admin) in public.users
   const svcToken = SUPABASE_SERVICE;
   if (!svcToken) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY');
   const list = await rest(`${SUPABASE_URL}/rest/v1/users?select=id,email,role&email=eq.${encodeURIComponent(ADMIN_EMAIL)}`, 'GET', svcToken);
   if (!Array.isArray(list) || list.length === 0) {
-    // create Milan as public user admin
-    const id = await ensurePublicUser(ADMIN_EMAIL, 'Milan', 'admin');
+  // create Kost as public user admin
+  const id = await ensurePublicUser(ADMIN_EMAIL, 'Milan', 'admin');
     return { id };
   }
   // ensure role admin
@@ -87,7 +87,7 @@ async function main() {
   const adminJwt = signJWT({ sub: admin.id }, SUPABASE_JWT_SECRET);
 
   console.log('Ensuring Zuzana exists...');
-  const zuzanaId = await ensurePublicUser('zuzana@example.com', 'Zuzana', 'user');
+  const zuzanaId = await ensurePublicUser('info@adminreal.cz', 'Zuzana', 'user');
 
   console.log('Creating category and link...');
   const catArr = await rest(`${SUPABASE_URL}/rest/v1/categories`, 'POST', adminJwt, [{ name: 'E2E Demo Kategorie', owner_id: admin.id, display_order: 0 }]);

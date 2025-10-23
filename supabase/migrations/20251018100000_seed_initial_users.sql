@@ -14,29 +14,29 @@ DECLARE
 BEGIN
   -- Milan (admin)
   INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at)
-  VALUES ('00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated', 'milan@example.com', crypt('milan123', gen_salt('bf')), now())
+  VALUES ('00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated', 'kost@adminreal.cz', crypt('milan123', gen_salt('bf')), now())
   RETURNING id INTO u_milan;
 
   -- Zuzana (user)
   INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at)
-  VALUES ('00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated', 'zuzana@example.com', crypt('zuzana123', gen_salt('bf')), now())
+  VALUES ('00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated', 'info@adminreal.cz', crypt('zuzana123', gen_salt('bf')), now())
   RETURNING id INTO u_zuzana;
 
   -- David (user)
   INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at)
-  VALUES ('00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated', 'david@example.com', crypt('david123', gen_salt('bf')), now())
+  VALUES ('00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated', 'dvorak@adminreal.cz', crypt('david123', gen_salt('bf')), now())
   RETURNING id INTO u_david;
 
   -- Iveta (user)
   INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at)
-  VALUES ('00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated', 'iveta@example.com', crypt('iveta123', gen_salt('bf')), now())
+  VALUES ('00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated', 'faktury@adminreal.cz', crypt('iveta123', gen_salt('bf')), now())
   RETURNING id INTO u_iveta;
 
   -- Create public profiles
   INSERT INTO public.users (id, email, full_name, role, theme)
   VALUES
-    (u_milan, 'milan@example.com', 'Milan', 'admin', 'light'),
-    (u_zuzana, 'zuzana@example.com', 'Zuzana', 'user', 'light'),
-    (u_david, 'david@example.com', 'David', 'user', 'light'),
-    (u_iveta, 'iveta@example.com', 'Iveta', 'user', 'light');
+  (u_milan, 'kost@adminreal.cz', 'Milan', 'admin', 'light'),
+  (u_zuzana, 'info@adminreal.cz', 'Zuzana', 'user', 'light'),
+  (u_david, 'dvorak@adminreal.cz', 'David', 'user', 'light'),
+  (u_iveta, 'faktury@adminreal.cz', 'Iveta', 'user', 'light');
 END $$;

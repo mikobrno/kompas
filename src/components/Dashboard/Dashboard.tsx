@@ -15,7 +15,6 @@ import { EditCategoryModal } from '../Modals/EditCategoryModal';
 import { EditLinkModal } from '../Modals/EditLinkModal';
 import { SettingsModal } from '../Modals/SettingsModal';
 import { filterCategories } from '../../lib/search';
-import { normalizeHexColor, hexToRgba } from '../../lib/colors';
 
 interface Link {
   id: string;
@@ -82,6 +81,7 @@ export const Dashboard = () => {
   const [editCategory, setEditCategory] = useState<{ id: string; name: string; color_hex: string } | null>(null);
   const [editLinkId, setEditLinkId] = useState<string | null>(null);
   const [collapseMode, setCollapseMode] = useState<'none' | 'collapsed' | 'expanded'>('none');
+  const [manualExpandedCategories, setManualExpandedCategories] = useState<string[]>([]);
   const refreshTimerRef = useRef<number | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -250,9 +250,25 @@ export const Dashboard = () => {
 
   const toggleCollapseAll = useCallback(() => {
     setCollapseMode((prev) => {
-      if (prev === 'none') return 'collapsed';
-      if (prev === 'collapsed') return 'expanded';
+      if (prev === 'none') {
+        setManualExpandedCategories([]);
+        return 'collapsed';
+      }
+      if (prev === 'collapsed') {
+        return 'expanded';
+      }
+      setManualExpandedCategories([]);
       return 'none';
+    });
+  }, []);
+
+  const toggleManualExpand = useCallback((categoryId: string) => {
+    setManualExpandedCategories((prev) => {
+      const exists = prev.includes(categoryId);
+      if (exists) {
+        return prev.filter((id) => id !== categoryId);
+      }
+      return [...prev, categoryId];
     });
   }, []);
 
@@ -362,20 +378,16 @@ export const Dashboard = () => {
 
       <PinnedLinksBar key={refreshKey} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-screen-2xl mx-auto px-3 sm:px-4 lg:px-6 py-6">
         {ownCategories.length > 0 && (
-          <div className="mb-12">
+          <div className="mb-8">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
               Moje kategorie
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
               {ownCategories.map((category: Category) => {
-                const accent = normalizeHexColor(category.color_hex);
-                const addLinkButtonStyle = {
-                  borderColor: hexToRgba(accent, 0.4),
-                  color: accent,
-                  boxShadow: `0 12px 24px ${hexToRgba(accent, 0.18)}`,
-                };
+                const forcedExpanded = !!searchQuery || collapseMode === 'expanded' || (collapseMode === 'collapsed' && manualExpandedCategories.includes(category.id));
+                const forcedCollapsed = collapseMode === 'collapsed' && !forcedExpanded;
 
                 return (
                   <div
@@ -395,13 +407,13 @@ export const Dashboard = () => {
                       onRefresh={() => setRefreshKey((k: number) => k + 1)}
                       onEditLink={(id: string) => setEditLinkId(id)}
                       onShareLink={(linkId: string, linkName: string) => setShareLink({ id: linkId, name: linkName })}
-                      forceExpanded={!!searchQuery || collapseMode === 'expanded'}
-                      forceCollapsed={collapseMode === 'collapsed'}
+                      forceExpanded={forcedExpanded}
+                      forceCollapsed={forcedCollapsed}
+                      onForcedToggle={collapseMode === 'collapsed' && !searchQuery ? () => toggleManualExpand(category.id) : undefined}
                     />
                     <button
                       onClick={() => setShowAddLink(category.id)}
-                      className="absolute bottom-4 right-4 rounded-full border bg-white/40 backdrop-blur p-3 shadow-lg transition hover:bg-white/60"
-                      style={addLinkButtonStyle}
+                        className="absolute bottom-4 right-4 rounded-full border border-white/30 bg-white/40 backdrop-blur p-3 shadow-lg transition hover:bg-white/60 text-[#f05a28]"
                       title="Přidat odkaz"
                     >
                       <Plus className="w-4 h-4" />
@@ -414,18 +426,14 @@ export const Dashboard = () => {
         )}
 
         {sharedCategories.length > 0 && (
-          <div className="mb-12">
+          <div className="mb-8">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
               Sdíleno se mnou
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
               {sharedCategories.map((category: Category) => {
-                const accent = normalizeHexColor(category.color_hex);
-                const addLinkButtonStyle = {
-                  borderColor: hexToRgba(accent, 0.4),
-                  color: accent,
-                  boxShadow: `0 12px 24px ${hexToRgba(accent, 0.18)}`,
-                };
+                const forcedExpanded = !!searchQuery || collapseMode === 'expanded' || (collapseMode === 'collapsed' && manualExpandedCategories.includes(category.id));
+                const forcedCollapsed = collapseMode === 'collapsed' && !forcedExpanded;
 
                 return (
                   <div key={category.id} className="relative">
@@ -438,14 +446,14 @@ export const Dashboard = () => {
                       onRefresh={() => setRefreshKey((k: number) => k + 1)}
                       onEditLink={(id: string) => setEditLinkId(id)}
                       onShareLink={(linkId: string, linkName: string) => setShareLink({ id: linkId, name: linkName })}
-                      forceExpanded={!!searchQuery || collapseMode === 'expanded'}
-                      forceCollapsed={collapseMode === 'collapsed'}
+                      forceExpanded={forcedExpanded}
+                      forceCollapsed={forcedCollapsed}
+                      onForcedToggle={collapseMode === 'collapsed' && !searchQuery ? () => toggleManualExpand(category.id) : undefined}
                     />
                     {(category.permission === 'editor' || profile?.role === 'admin') && (
                       <button
                         onClick={() => setShowAddLink(category.id)}
-                        className="absolute bottom-4 right-4 rounded-full border bg-white/40 backdrop-blur p-3 shadow-lg transition hover:bg-white/60"
-                        style={addLinkButtonStyle}
+                          className="absolute bottom-4 right-4 rounded-full border border-white/30 bg-white/40 backdrop-blur p-3 shadow-lg transition hover:bg-white/60 text-[#f05a28]"
                         title="Přidat odkaz"
                       >
                         <Plus className="w-4 h-4" />

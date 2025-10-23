@@ -1,3 +1,4 @@
+/* eslint-disable no-inline-styles/no-inline-styles */
 import { useEffect, useMemo, useState } from 'react';
 import type { DragEvent } from 'react';
 import { MoreVertical, Edit2, Trash2, Share2, Archive, Pin, UserPlus, Users, ChevronDown } from 'lucide-react';
@@ -39,6 +40,7 @@ interface CategoryCardProps {
   onShareLink: (linkId: string, linkName: string) => void;
   forceExpanded?: boolean;
   forceCollapsed?: boolean;
+  onForcedToggle?: () => void;
 }
 
 export const CategoryCard = ({
@@ -52,6 +54,7 @@ export const CategoryCard = ({
   onShareLink,
   forceExpanded = false,
   forceCollapsed = false,
+  onForcedToggle,
 }: CategoryCardProps) => {
   const { user, profile } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
@@ -131,6 +134,9 @@ export const CategoryCard = ({
 
   const toggleCollapse = () => {
     if (forceCollapsed || forceExpanded) {
+      if (onForcedToggle) {
+        onForcedToggle();
+      }
       return;
     }
     setIsCollapsed((prev) => {
@@ -210,22 +216,22 @@ export const CategoryCard = ({
 
   return (
     <div
-      className="bg-white/85 dark:bg-slate-800/75 backdrop-blur-sm rounded-2xl shadow-sm border transition-colors"
+      className="bg-white/85 dark:bg-slate-800/75 backdrop-blur-sm rounded-xl shadow-sm border transition-colors"
       style={cardStyle}
     >
       <div
-        className="px-4 py-3 flex items-center justify-between border-b rounded-t-2xl bg-white/20 dark:bg-slate-800/60"
+        className="px-3 py-2 flex items-center justify-between border-b rounded-t-xl bg-white/20 dark:bg-slate-800/60"
         style={headerStyle}
       >
         <button
           type="button"
           onClick={toggleCollapse}
-          className="group flex items-center gap-3 flex-1 pr-4 py-2 rounded-xl border border-transparent bg-transparent text-left transition hover:border-white/40 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/40 dark:hover:bg-slate-700/50"
+          className="group flex items-center gap-2.5 flex-1 pr-3 py-1.5 rounded-lg border border-transparent bg-transparent text-left transition hover:border-white/40 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/40 dark:hover:bg-slate-700/50"
           aria-label={collapsed ? 'Rozbalit kategorii' : 'Sbalit kategorii'}
         >
-          <span className="flex items-center justify-center w-7 h-7 rounded-lg border border-white/30 bg-white/25 backdrop-blur dark:border-slate-500/40 dark:bg-slate-700/60">
+          <span className="flex items-center justify-center w-6 h-6 rounded-lg border border-white/30 bg-white/25 backdrop-blur dark:border-slate-500/40 dark:bg-slate-700/60">
             <ChevronDown
-              className={`w-4 h-4 transition-transform ${collapsed ? '-rotate-90' : ''}`}
+              className={`w-3.5 h-3.5 transition-transform ${collapsed ? '-rotate-90' : ''}`}
               style={accentIconStyle}
             />
           </span>
@@ -315,16 +321,16 @@ export const CategoryCard = ({
       </div>
 
       {!collapsed && (
-        <div className="p-5 space-y-3">
+        <div className="p-4 space-y-2">
           {linksLocal.filter(l => !l.is_archived).length === 0 ? (
-          <p className="text-center text-slate-500 dark:text-slate-400 py-8 text-sm">
+          <p className="text-center text-slate-500 dark:text-slate-400 py-6 text-sm">
             Žádné odkazy
           </p>
         ) : (
           linksLocal.filter(l => !l.is_archived).map((link) => (
             <div
               key={link.id}
-              className="group relative bg-white/80 dark:bg-slate-800/65 border rounded-xl p-3 transition hover:shadow-md"
+              className="group relative bg-white/80 dark:bg-slate-800/65 border rounded-lg p-2.5 transition hover:shadow-md"
               style={linkBorderStyle}
               draggable={canEdit}
               onDragStart={(e) => onLinkDragStart(e, link.id)}
@@ -350,13 +356,13 @@ export const CategoryCard = ({
                   <div className="w-5 h-5 bg-slate-300 dark:bg-slate-600 rounded flex-shrink-0" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-slate-900 dark:text-white truncate">
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-medium text-sm text-slate-900 dark:text-white truncate">
                       {link.display_name}
                     </p>
                     {link.isSharedLink && (
                       <span
-                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs flex-shrink-0"
+                        className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] flex-shrink-0"
                         style={badgeStyle}
                         title="Sdíleno odkazem"
                         aria-label="Sdíleno odkazem"
@@ -367,11 +373,11 @@ export const CategoryCard = ({
                     )}
                   </div>
                   {link.tags && link.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-1">
+                    <div className="flex flex-wrap gap-1.5 mt-1">
                       {link.tags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex items-center text-xs font-medium px-3 py-0.5 rounded-full border backdrop-blur-sm shadow-sm"
+                          className="inline-flex items-center text-[11px] font-medium px-2.5 py-0.5 rounded-full border backdrop-blur-sm shadow-sm"
                           style={tagStyle}
                         >
                           {tag.name}
@@ -475,9 +481,9 @@ export const CategoryCard = ({
           ))
         )}
         {linksLocal.some(l => l.is_archived) && (
-          <div className="pt-4">
+          <div className="pt-3">
             <h4
-              className="text-xs uppercase tracking-wide mb-2"
+              className="text-xs uppercase tracking-wide mb-1.5"
               style={accentIconStyle}
             >
               Archivované odkazy
@@ -486,7 +492,7 @@ export const CategoryCard = ({
               {linksLocal.filter(l => l.is_archived).map(link => (
                 <div
                   key={link.id}
-                  className="relative bg-white/70 dark:bg-slate-800/50 border rounded-lg p-3 opacity-80 hover:opacity-100 transition"
+                  className="relative bg-white/70 dark:bg-slate-800/50 border rounded-lg p-2.5 opacity-80 hover:opacity-100 transition"
                   style={subtleBorderStyle}
                 >
                   <div className="flex items-center justify-between">

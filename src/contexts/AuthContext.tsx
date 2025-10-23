@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { mintDevJwt } from '../lib/devJwt';
@@ -42,6 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [impersonatedUserId, setImpersonatedUserId] = useState<string | null>(null);
+  const sessionRefreshTimeoutRef = useRef<number | null>(null);
 
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -122,13 +123,65 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, [ensureProfileExists]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const clearScheduledRefresh = () => {
+      if (sessionRefreshTimeoutRef.current != null) {
+        window.clearTimeout(sessionRefreshTimeoutRef.current);
+        sessionRefreshTimeoutRef.current = null;
+      }
+    };
+
+    const scheduleRefresh = async () => {
+      const { data } = await supabase.auth.getSession();
+      const activeSession = data.session;
+      if (!activeSession) {
+        clearScheduledRefresh();
+        return;
+      }
+
+      const now = Math.floor(Date.now() / 1000);
+      const expiresAt = activeSession.expires_at ?? now + 3600;
+      const refreshInSeconds = Math.max(expiresAt - now - 120, 300);
+
+      clearScheduledRefresh();
+      sessionRefreshTimeoutRef.current = window.setTimeout(async () => {
+        const { data: refreshed, error } = await supabase.auth.refreshSession();
+        if (error) {
+          console.warn('Session auto-refresh failed:', error.message);
+          return;
+        }
+        if (refreshed.session) {
+          setSession(refreshed.session);
+          setUser(refreshed.session.user);
+          const profileData = await ensureProfileExists(refreshed.session.user);
+          setProfile(profileData);
+        }
+        scheduleRefresh();
+      }, refreshInSeconds * 1000);
+    };
+
+    if (user) {
+      scheduleRefresh();
+    } else {
+      clearScheduledRefresh();
+    }
+
+    return () => {
+      clearScheduledRefresh();
+    };
+  }, [user, ensureProfileExists]);
+
   const signIn = async (email: string, password: string) => {
     // Dev fallback: pokud místní GoTrue selže (např. Database error querying schema),
     // umožníme přihlášení mintnutím JWT a nastavením session manuálně.
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (!error) return { error: null };
 
-    if (import.meta.env.DEV && email === 'milan@example.com' && password === 'milan123') {
+  if (import.meta.env.DEV && email === 'kost@adminreal.cz' && password === 'milan123') {
       try {
   const jwtSecret = (import.meta as unknown as { env: Record<string, string | undefined> }).env.VITE_SUPABASE_JWT_SECRET;
         if (!jwtSecret) return { error };
@@ -138,7 +191,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (!userId) return { error };
 
         const access_token = await mintDevJwt({ jwtSecret, userId, email });
-        const refresh_token = await mintDevJwt({ jwtSecret, userId, email, expiresInSeconds: 60 * 60 * 24 * 7 });
+  const refresh_token = await mintDevJwt({ jwtSecret, userId, email, expiresInSeconds: 60 * 60 * 24 * 30 });
         const { error: setSessionError } = await supabase.auth.setSession({ access_token, refresh_token });
         if (setSessionError) {
           console.error('Dev fallback setSession failed', setSessionError.message);

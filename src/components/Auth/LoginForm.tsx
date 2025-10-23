@@ -9,7 +9,7 @@ interface LoginFormProps {
 export const LoginForm = ({ onToggleForm }: LoginFormProps) => {
   const isDev = import.meta.env.DEV;
   // Dev-only autofill admin credentials to allow one-click login
-  const [email, setEmail] = useState(isDev ? 'milan@example.com' : '');
+  const [email, setEmail] = useState(isDev ? 'kost@adminreal.cz' : '');
   const [password, setPassword] = useState(isDev ? 'milan123' : '');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -44,7 +44,7 @@ export const LoginForm = ({ onToggleForm }: LoginFormProps) => {
         </p>
         {isDev && (
           <div className="mb-4 text-xs text-center text-slate-500 dark:text-slate-400">
-            Dev mód: pole jsou předvyplněna pro admina (milan@example.com / milan123)
+            Dev mód: pole jsou předvyplněna pro admina (kost@adminreal.cz / milan123)
           </div>
         )}
 

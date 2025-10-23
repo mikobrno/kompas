@@ -24,11 +24,15 @@ Poznámky
 - Sdílení na úrovni odkazu (link_shares) je zahrnuto v RPC get_accessible_categories_with_permission a příjemce uvidí kategorii s badge na sdíleném odkazu.
 
 Dev login (pohodlné přihlášení při lokálním vývoji)
-- Přihlašovací formulář v dev režimu automaticky předvyplní admina: milan@example.com / milan123.
+- Přihlašovací formulář v dev režimu automaticky předvyplní admina: kost@adminreal.cz / milan123.
 - Pokud lokální Auth (GoTrue) dočasně vrací „Database error querying schema“, UI v dev režimu použije fallback:
 	- vytvoří krátkodobý JWT podepsaný VITE_SUPABASE_JWT_SECRET
 	- nastaví session přímo v supabase-js
 	- funguje pouze v dev a pouze pro admin účet ze seed migrace
+
+Seedovaní uživatelé (migrace 20251018100000_seed_initial_users.sql)
+- Admin: kost@adminreal.cz / milan123
+- Členové: info@adminreal.cz / zuzana123, dvorak@adminreal.cz / david123, faktury@adminreal.cz / iveta123
 
 Rychlé ověření E2E sdílení (lokální Supabase)
 - Předpoklad: běží lokální Supabase (supabase start) a migrace jsou nasazené.
