@@ -1,0 +1,3 @@
+-- Deprecated: Use supabase/seed_cloud.sql (now wrapped for Studio).
+-- This file remains only as a pointer to the correct seed script.
+-- Intentionally left blank.
