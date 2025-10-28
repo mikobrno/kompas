@@ -219,6 +219,35 @@ export type Database = {
           created_at?: string;
         };
       };
+      tag_shares: {
+        Row: {
+          id: string;
+          tag_id: string;
+          owner_id: string;
+          shared_with_user_id: string | null;
+          shared_with_group_id: string | null;
+          permission_level: 'viewer' | 'editor';
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tag_id: string;
+          owner_id: string;
+          shared_with_user_id?: string | null;
+          shared_with_group_id?: string | null;
+          permission_level: 'viewer' | 'editor';
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tag_id?: string;
+          owner_id?: string;
+          shared_with_user_id?: string | null;
+          shared_with_group_id?: string | null;
+          permission_level?: 'viewer' | 'editor';
+          created_at?: string;
+        };
+      };
       pinned_links: {
         Row: {
           user_id: string;

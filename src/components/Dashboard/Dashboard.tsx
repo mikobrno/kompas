@@ -288,6 +288,7 @@ export const Dashboard = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'link_tags' }, scheduleRefresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'category_shares' }, scheduleRefresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'link_shares' }, scheduleRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tag_shares' }, scheduleRefresh)
       .subscribe();
 
     return () => {
@@ -407,17 +408,11 @@ export const Dashboard = () => {
                       onRefresh={() => setRefreshKey((k: number) => k + 1)}
                       onEditLink={(id: string) => setEditLinkId(id)}
                       onShareLink={(linkId: string, linkName: string) => setShareLink({ id: linkId, name: linkName })}
+                      onAddLink={(catId: string) => setShowAddLink(catId)}
                       forceExpanded={forcedExpanded}
                       forceCollapsed={forcedCollapsed}
                       onForcedToggle={collapseMode === 'collapsed' && !searchQuery ? () => toggleManualExpand(category.id) : undefined}
                     />
-                    <button
-                      onClick={() => setShowAddLink(category.id)}
-                        className="absolute bottom-4 right-4 rounded-full border border-white/30 bg-white/40 backdrop-blur p-3 shadow-lg transition hover:bg-white/60 text-[#f05a28]"
-                      title="Přidat odkaz"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
                   </div>
                 );
               })}
@@ -446,19 +441,11 @@ export const Dashboard = () => {
                       onRefresh={() => setRefreshKey((k: number) => k + 1)}
                       onEditLink={(id: string) => setEditLinkId(id)}
                       onShareLink={(linkId: string, linkName: string) => setShareLink({ id: linkId, name: linkName })}
+                      onAddLink={(catId: string) => setShowAddLink(catId)}
                       forceExpanded={forcedExpanded}
                       forceCollapsed={forcedCollapsed}
                       onForcedToggle={collapseMode === 'collapsed' && !searchQuery ? () => toggleManualExpand(category.id) : undefined}
                     />
-                    {(category.permission === 'editor' || profile?.role === 'admin') && (
-                      <button
-                        onClick={() => setShowAddLink(category.id)}
-                          className="absolute bottom-4 right-4 rounded-full border border-white/30 bg-white/40 backdrop-blur p-3 shadow-lg transition hover:bg-white/60 text-[#f05a28]"
-                        title="Přidat odkaz"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    )}
                   </div>
                 );
               })}

@@ -1,8 +1,9 @@
 /* eslint-disable no-inline-styles/no-inline-styles */
 import { useEffect, useMemo, useState } from 'react';
 import type { DragEvent } from 'react';
-import { MoreVertical, Edit2, Trash2, Share2, Archive, Pin, UserPlus, Users, ChevronDown } from 'lucide-react';
+import { MoreVertical, Edit2, Trash2, Share2, Archive, Pin, UserPlus, Users, ChevronDown, Plus } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { bestFaviconFor, extractHostname, iconHorseFavicon } from '../../lib/favicons';
 import { useAuth } from '../../contexts/AuthContext';
 import { normalizeHexColor, hexToRgba } from '../../lib/colors';
 
@@ -38,6 +39,7 @@ interface CategoryCardProps {
   onRefresh: () => void;
   onEditLink: (linkId: string) => void;
   onShareLink: (linkId: string, linkName: string) => void;
+  onAddLink?: (categoryId: string) => void;
   forceExpanded?: boolean;
   forceCollapsed?: boolean;
   onForcedToggle?: () => void;
@@ -52,6 +54,7 @@ export const CategoryCard = ({
   onRefresh,
   onEditLink,
   onShareLink,
+  onAddLink,
   forceExpanded = false,
   forceCollapsed = false,
   onForcedToggle,
@@ -177,6 +180,13 @@ export const CategoryCard = ({
 
   const onLinkDragStart = (e: DragEvent<HTMLDivElement>, linkId: string) => {
     setDragLinkId(linkId);
+    // Označ přetahovaný prvek jako link, aby šlo přesouvat i mezi kategoriemi
+    try {
+      e.dataTransfer.setData('text/link-id', linkId);
+      e.dataTransfer.setData('text/source-category-id', category.id);
+    } catch {
+      // ignore – některá prostředí (testy) mohou mít omezený dataTransfer
+    }
     e.dataTransfer.effectAllowed = 'move';
   };
 
@@ -186,7 +196,15 @@ export const CategoryCard = ({
 
   const onLinkDrop = async (e: DragEvent<HTMLDivElement>, targetLinkId: string) => {
     e.preventDefault();
-    const sourceId = dragLinkId;
+    e.stopPropagation(); // zabráníme, aby drop bublal na úroveň kategorie
+    const transferId = (() => {
+      try {
+        return e.dataTransfer.getData('text/link-id');
+      } catch {
+        return '';
+      }
+    })();
+    const sourceId = dragLinkId || (transferId || null);
     setDragLinkId(null);
     if (!sourceId || sourceId === targetLinkId) return;
 
@@ -194,29 +212,85 @@ export const CategoryCard = ({
     const links = [...linksLocal];
     const fromIdx = links.findIndex(l => l.id === sourceId);
     const toIdx = links.findIndex(l => l.id === targetLinkId);
-    if (fromIdx === -1 || toIdx === -1) return;
+    if (toIdx === -1) return;
 
-    const [moved] = links.splice(fromIdx, 1);
-    links.splice(toIdx, 0, moved);
+    // Přesun v rámci stejné kategorie
+    if (fromIdx !== -1) {
+      const [moved] = links.splice(fromIdx, 1);
+      links.splice(toIdx, 0, moved);
 
-    // Optimisticky přeuspořádej lokální stav
-    setLinksLocal(links);
+      setLinksLocal(links);
+      try {
+        await Promise.all(
+          links.map((l, index) => supabase.from('links').update({ display_order: index }).eq('id', l.id))
+        );
+        onRefresh();
+      } catch (err) {
+        console.error('Chyba při ukládání pořadí odkazů, vracím zpět', err);
+        setLinksLocal(prev);
+      }
+      return;
+    }
 
+    // Přesun z jiné kategorie – vlož před targetLinkId
     try {
-      // Persist order
+      // Posuň existující pořadí od cílového indexu
       await Promise.all(
-        links.map((l, index) => supabase.from('links').update({ display_order: index }).eq('id', l.id))
+        links
+          .slice(toIdx)
+          .map((l, indexOffset) =>
+            supabase.from('links').update({ display_order: toIdx + 1 + indexOffset }).eq('id', l.id)
+          )
       );
+      // Přesuň samotný odkaz do této kategorie a nastav jeho pořadí
+      await supabase
+        .from('links')
+        .update({ category_id: category.id, display_order: toIdx })
+        .eq('id', sourceId);
+
       onRefresh();
     } catch (err) {
-      console.error('Chyba při ukládání pořadí odkazů, vracím zpět', err);
-      setLinksLocal(prev);
+      console.error('Přesun odkazu mezi kategoriemi selhal:', err);
     }
+  };
+
+  // Umožni přetažení odkazu z jiné kategorie na prázdné místo v této kategorii (přidá na konec)
+  const onCategoryAreaDragOver = (e: DragEvent<HTMLDivElement>) => {
+    // Povolit drop, pokud jde o link
+    const linkId = e.dataTransfer?.getData && e.dataTransfer.getData('text/link-id');
+    if (linkId) {
+      e.preventDefault();
+    }
+  };
+
+  const onCategoryAreaDrop = async (e: DragEvent<HTMLDivElement>) => {
+    const linkId = e.dataTransfer?.getData && e.dataTransfer.getData('text/link-id');
+    if (!linkId) return; // nejedná se o přesun odkazu
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Pokud už odkaz patří do této kategorie, nic – reorder řeší per-link drop zóna
+    const alreadyHere = linksLocal.some((l) => l.id === linkId);
+    if (alreadyHere) return;
+
+    // Nastav odkaz do této kategorie na konec seznamu
+    const nextIndex = linksLocal.length;
+    const { error } = await supabase
+      .from('links')
+      .update({ category_id: category.id, display_order: nextIndex })
+      .eq('id', linkId);
+
+    if (error) {
+      console.error('Přesun odkazu do jiné kategorie selhal:', error);
+      return;
+    }
+
+    onRefresh();
   };
 
   return (
     <div
-      className="bg-white/85 dark:bg-slate-800/75 backdrop-blur-sm rounded-xl shadow-sm border transition-colors"
+      className={`bg-white/85 dark:bg-slate-800/75 backdrop-blur-sm rounded-xl shadow-sm border transition-colors ${showMenu || showLinkMenu ? 'relative z-50' : ''}`}
       style={cardStyle}
     >
       <div
@@ -264,11 +338,11 @@ export const CategoryCard = ({
             {showMenu && (
               <>
                 <div
-                  className="fixed inset-0 z-10"
+                  className="fixed inset-0 z-40"
                   onClick={() => setShowMenu(false)}
                 />
                 <div
-                  className="absolute right-0 mt-1 w-48 bg-white/95 dark:bg-slate-800 rounded-xl shadow-xl border z-20"
+                  className="absolute right-0 mt-1 w-48 bg-white/95 dark:bg-slate-800 rounded-xl shadow-xl border z-50"
                   style={subtleBorderStyle}
                 >
                   <button
@@ -321,7 +395,7 @@ export const CategoryCard = ({
       </div>
 
       {!collapsed && (
-        <div className="p-4 space-y-2">
+        <div className="p-4 space-y-2" onDragOver={onCategoryAreaDragOver} onDrop={onCategoryAreaDrop}>
           {linksLocal.filter(l => !l.is_archived).length === 0 ? (
           <p className="text-center text-slate-500 dark:text-slate-400 py-6 text-sm">
             Žádné odkazy
@@ -343,18 +417,34 @@ export const CategoryCard = ({
                 rel="noopener noreferrer"
                 className="flex items-center space-x-3"
               >
-                {link.favicon_url ? (
-                  <img
-                    src={link.favicon_url}
-                    alt=""
-                    className="w-5 h-5 flex-shrink-0"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <div className="w-5 h-5 bg-slate-300 dark:bg-slate-600 rounded flex-shrink-0" />
-                )}
+                {(() => {
+                  const host = extractHostname(link.url);
+                  const primary = link.favicon_url || (host ? bestFaviconFor(link.url, 32) : null);
+                  if (!primary) {
+                    return <div className="w-5 h-5 bg-slate-300 dark:bg-slate-600 rounded flex-shrink-0" />;
+                  }
+                  return (
+                    <img
+                      src={primary}
+                      alt=""
+                      className="w-5 h-5 flex-shrink-0"
+                      data-favicon-attempt="primary"
+                      onError={(e) => {
+                        const el = e.currentTarget as HTMLImageElement & { dataset: { faviconAttempt?: string } };
+                        if (!host) {
+                          el.style.display = 'none';
+                          return;
+                        }
+                        if (el.dataset.faviconAttempt === 'primary') {
+                          el.dataset.faviconAttempt = 'secondary';
+                          el.src = iconHorseFavicon(host);
+                        } else {
+                          el.style.display = 'none';
+                        }
+                      }}
+                    />
+                  );
+                })()}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <p className="font-medium text-sm text-slate-900 dark:text-white truncate">
@@ -400,11 +490,11 @@ export const CategoryCard = ({
                 {showLinkMenu === link.id && (
                   <>
                     <div
-                      className="fixed inset-0 z-10"
+                      className="fixed inset-0 z-40"
                       onClick={() => setShowLinkMenu(null)}
                     />
                     <div
-                      className="absolute right-0 mt-1 w-40 bg-white/95 dark:bg-slate-800 rounded-xl shadow-xl border z-20"
+                      className="absolute right-0 mt-1 w-40 bg-white/95 dark:bg-slate-800 rounded-xl shadow-xl border z-50"
                       style={subtleBorderStyle}
                     >
                       <button
@@ -480,6 +570,19 @@ export const CategoryCard = ({
             </div>
           ))
         )}
+        {canManageLinks && onAddLink && (
+          <div className="pt-2 flex justify-end">
+            <button
+              onClick={() => onAddLink(category.id)}
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-white/30 bg-white/25 backdrop-blur hover:bg-white/45 dark:border-slate-500/40 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition"
+              title="Přidat odkaz"
+              aria-label="Přidat odkaz"
+            >
+              <Plus className="w-4 h-4" style={accentIconStyle} />
+            </button>
+          </div>
+        )}
+
         {linksLocal.some(l => l.is_archived) && (
           <div className="pt-3">
             <h4

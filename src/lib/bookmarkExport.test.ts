@@ -12,6 +12,7 @@ describe('bookmark export helpers', () => {
             url: 'https://example.com',
             description: 'Popis odkazu',
             addDate: 1_700_000_000,
+            tags: ['alpha', 'beta'],
           },
         ],
       },
@@ -29,13 +30,15 @@ describe('bookmark export helpers', () => {
   const html = generateBookmarksHtml(categories, { generatedAt: new Date('2025-01-01T00:00:00Z') });
     expect(html).toContain('<H3');
     expect(html).toContain('<A HREF="https://example.com"');
+    expect(html).toContain('TAGS="alpha, beta"');
 
     const parsed = parseBookmarksHtml(html);
     expect(parsed).toHaveLength(2);
     expect(parsed[0].name).toBe('Kategorie A');
     expect(parsed[0].links).toHaveLength(1);
     expect(parsed[0].links[0].url).toBe('https://example.com');
-    expect(parsed[0].links[0].description).toBe('Popis odkazu');
+  expect(parsed[0].links[0].description).toBe('Popis odkazu');
+  expect(parsed[0].links[0].tags).toEqual(['alpha', 'beta']);
   });
 
   it('parses nested bookmark folders and descriptions', () => {

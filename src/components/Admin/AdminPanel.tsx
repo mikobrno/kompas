@@ -1,9 +1,10 @@
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
-import { X, Users, Trash2, Undo2, Save, Link as LinkIcon, Merge, Shield, Download, Upload } from 'lucide-react';
+import { X, Users, Trash2, Undo2, Save, Link as LinkIcon, Merge, Shield, Download, Upload, Share2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { DEFAULT_CATEGORY_COLOR } from '../../lib/colors';
 import { generateBookmarksHtml, parseBookmarksHtml, type BookmarkCategory } from '../../lib/bookmarkExport';
+import { ShareTagModal } from '../Modals/ShareTagModal';
 
 interface User {
   id: string;
@@ -58,6 +59,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
   const [importing, setImporting] = useState(false);
   const [clearBeforeImport, setClearBeforeImport] = useState(false);
   const [importStats, setImportStats] = useState<{ categories: number; links: number } | null>(null);
+  const [shareTag, setShareTag] = useState<{ id: string; name: string } | null>(null);
   // Odstraněny akce pro seed uživatelů
   // Demo akce odstraněny – panel pracuje jen s reálnými daty
 
@@ -252,20 +254,21 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
       const categoryIds = categoriesList.map((category) => category.id);
       const { data: linksData, error: linksError } = await supabase
         .from('links')
-        .select('category_id, display_name, url, display_order, is_archived')
+        .select('category_id, display_name, url, display_order, is_archived, link_tags ( tags ( name ) )')
         .in('category_id', categoryIds)
         .eq('is_archived', false)
         .order('display_order', { ascending: true });
 
       if (linksError) throw linksError;
 
-      const linksByCategory = new Map<string, { display_name: string; url: string; display_order: number }[]>();
+      const linksByCategory = new Map<string, { display_name: string; url: string; display_order: number; tags?: string[] }[]>();
       (linksData ?? []).forEach((link) => {
         const entries = linksByCategory.get(link.category_id) || [];
         entries.push({
           display_name: link.display_name,
           url: link.url,
           display_order: link.display_order,
+          tags: (link as unknown as { link_tags?: { tags: { name: string } }[] }).link_tags?.map((lt) => lt.tags.name) || [],
         });
         linksByCategory.set(link.category_id, entries);
       });
@@ -277,6 +280,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
             .map((link) => ({
               title: link.display_name,
               url: link.url,
+              tags: link.tags && link.tags.length ? link.tags : undefined,
             }));
           return {
             name: category.name,
@@ -388,18 +392,56 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
 
         if (categoryError || !insertedCategory) throw categoryError;
 
-        const linkPayload = category.links.map((link, linkIdx) => ({
-          category_id: insertedCategory.id,
-          display_name: link.title,
-          url: link.url,
-          display_order: linkIdx,
-          is_archived: false,
-          favicon_url: null,
-        }));
+        // Vkládejme odkazy postupně, abychom mohli přiřadit štítky
+        for (let linkIdx = 0; linkIdx < category.links.length; linkIdx += 1) {
+          const link = category.links[linkIdx];
+          const { data: newLink, error: linkError } = await supabase
+            .from('links')
+            .insert({
+              category_id: insertedCategory.id,
+              display_name: link.title,
+              url: link.url,
+              display_order: linkIdx,
+              is_archived: false,
+              favicon_url: null,
+            })
+            .select('id')
+            .single();
+          if (linkError || !newLink) throw linkError;
 
-        if (linkPayload.length) {
-          const { error: linksError } = await supabase.from('links').insert(linkPayload);
-          if (linksError) throw linksError;
+          // Zpracuj štítky, pokud existují
+          const tagNames = (link as unknown as { tags?: string[] }).tags || [];
+          if (tagNames.length) {
+            // Najdi existující tagy
+            const { data: existingTags, error: existingErr } = await supabase
+              .from('tags')
+              .select('id, name')
+              .in('name', tagNames);
+            if (existingErr) throw existingErr;
+            const existingMap = new Map<string, string>();
+            (existingTags as { id: string; name: string }[] | null | undefined)?.forEach((t) => existingMap.set(t.name, t.id));
+
+            // Vytvoř chybějící
+            const missing = tagNames.filter((n) => !existingMap.has(n));
+            if (missing.length) {
+              const { data: created, error: createErr } = await supabase
+                .from('tags')
+                .insert(missing.map((name) => ({ name })))
+                .select('id, name');
+              if (createErr) throw createErr;
+              (created as { id: string; name: string }[] | null | undefined)?.forEach((t) => existingMap.set(t.name, t.id));
+            }
+
+            // Propoj link s tagy
+            const relations = tagNames
+              .map((n) => existingMap.get(n))
+              .filter((id): id is string => !!id)
+              .map((tagId) => ({ link_id: newLink.id, tag_id: tagId }));
+            if (relations.length) {
+              const { error: ltErr } = await supabase.from('link_tags').insert(relations);
+              if (ltErr) throw ltErr;
+            }
+          }
         }
       }
 
@@ -838,9 +880,17 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                         defaultValue={tag.name}
                         onChange={(e) => setRenameTagIds(prev => ({ ...prev, [tag.id]: e.target.value }))}
                         className="px-3 py-1 rounded-lg border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/40"
+                        aria-label={`Přejmenovat štítek ${tag.name}`}
                       />
                     </div>
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setShareTag({ id: tag.id, name: tag.name })}
+                        className="p-2 rounded-lg hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
+                        title="Sdílet štítek"
+                      >
+                        <Share2 className="w-4 h-4 text-[#f05a28] dark:text-[#ff8b5c]" />
+                      </button>
                       <button
                         onClick={() => handleRenameTag(tag.id)}
                         className="p-2 rounded-lg hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
@@ -1033,6 +1083,15 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
           )}
         </div>
       </div>
+      {shareTag && (
+        <ShareTagModal
+          isOpen={true}
+          tagId={shareTag.id}
+          tagName={shareTag.name}
+          onClose={() => setShareTag(null)}
+          onSaved={() => loadData()}
+        />
+      )}
     </div>
   );
 };
@@ -1045,3 +1104,4 @@ const sanitizeFileName = (input: string): string => {
     .replace(/^-|-$/g, '');
   return normalized || 'export';
 };
+

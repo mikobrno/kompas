@@ -4,6 +4,7 @@ export interface BookmarkLink {
   description?: string | null;
   addDate?: number | null;
   lastModified?: number | null;
+  tags?: string[];
 }
 
 export interface BookmarkCategory {
@@ -51,10 +52,13 @@ export const generateBookmarksHtml = (
         const linkTimestamp = Math.floor((link.addDate ? Number(link.addDate) : generatedAt)).toString();
         const href = escapeAttribute(link.url);
         const title = escapeHtml(link.title || link.url || 'Bez názvu');
-        lines.push(`<DT><A HREF="${href}" ADD_DATE="${linkTimestamp}" LAST_MODIFIED="${link.lastModified ? Math.floor(Number(link.lastModified)).toString() : linkTimestamp}">${title}</A>`);
+        const tagsCsv = (link.tags && link.tags.length) ? link.tags.join(', ') : '';
+        const tagsAttr = tagsCsv ? ` TAGS="${escapeAttribute(tagsCsv)}" DATA-TAGS="${escapeAttribute(tagsCsv)}"` : '';
+        lines.push(`<DT><A HREF="${href}" ADD_DATE="${linkTimestamp}" LAST_MODIFIED="${link.lastModified ? Math.floor(Number(link.lastModified)).toString() : linkTimestamp}"${tagsAttr}>${title}</A>`);
         if (link.description) {
           lines.push(`<DD>${escapeHtml(link.description)}</DD>`);
         }
+        // Tags se ukládají do atributu TAGS/DATA-TAGS; popis ponecháváme beze změny
       });
 
     lines.push('</DL><p>');
@@ -107,6 +111,13 @@ const parseCategoryContent = (dl: Element | null): { links: BookmarkLink[]; nest
         lastModified: lastModifiedAttr ? Number(lastModifiedAttr) : undefined,
       };
 
+      // Parse tags from attributes (TAGS or DATA-TAGS)
+      const tagsAttr = anchor.getAttribute('TAGS') ?? anchor.getAttribute('tags') ?? anchor.getAttribute('DATA-TAGS') ?? anchor.getAttribute('data-tags');
+      if (tagsAttr) {
+        const tags = tagsAttr.split(',').map(t => t.trim()).filter(Boolean);
+        if (tags.length) link.tags = tags;
+      }
+
       // Collect DD siblings (descriptions)
       const descriptions: string[] = [];
       let lookahead = idx + 1;
@@ -117,6 +128,13 @@ const parseCategoryContent = (dl: Element | null): { links: BookmarkLink[]; nest
       }
       if (descriptions.length) {
         link.description = descriptions.join('\n');
+        // Try to infer tags from a description line starting with "Tags:" or "Štítky:"
+        const tagLine = descriptions.find(d => /^\s*(tags|štítky)\s*:/i.test(d));
+        if (tagLine && !link.tags) {
+          const csv = tagLine.replace(/^\s*(tags|štítky)\s*:/i, '').trim();
+          const tags = csv.split(',').map(t => t.trim()).filter(Boolean);
+          if (tags.length) link.tags = tags;
+        }
       }
       idx = lookahead - 1;
       links.push(link);
