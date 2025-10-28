@@ -49,7 +49,7 @@ type DbLinkWithTags = {
   is_archived?: boolean;
   display_order: number;
   category_id: string;
-  link_tags?: { tags: { name: string } }[];
+  link_tags?: { tags: { id: string; name: string } }[];
 };
 
 // (unused legacy type removed)
@@ -195,7 +195,7 @@ export const Dashboard = () => {
         is_archived,
         display_order,
         category_id,
-        link_tags ( tags ( name ) )
+        link_tags ( tags ( id, name ) )
       `)
       .in('category_id', categoryIds)
       .order('display_order');
@@ -212,6 +212,26 @@ export const Dashboard = () => {
       linksByCategory.set(l.category_id, arr);
     });
 
+    // Pokud se dívá vlastník (nikoliv impersonace), získej informace o tom, co je sdílené směrem ven (pro zobrazení ikon u vlastních věcí)
+    let sharedCategoryIds = new Set<string>();
+    let sharedLinkIds = new Set<string>();
+    let sharedTagIds = new Set<string>();
+    if (!previewUserId && user) {
+      const allLinkIds: string[] = (linksData as unknown as DbLinkWithTags[]).map((l) => l.id);
+      const allTagIds: string[] = (linksData as unknown as DbLinkWithTags[])
+        .flatMap((l) => (l.link_tags || []).map((lt) => lt.tags.id));
+
+      const [catSharesRes, linkSharesRes, tagSharesRes] = await Promise.all([
+        supabase.from('category_shares').select('category_id').in('category_id', categoryIds),
+        allLinkIds.length ? supabase.from('link_shares').select('link_id').in('link_id', allLinkIds) : Promise.resolve({ data: [] as { link_id: string }[], error: null }),
+        allTagIds.length ? supabase.from('tag_shares').select('tag_id').in('tag_id', allTagIds) : Promise.resolve({ data: [] as { tag_id: string }[], error: null }),
+      ]);
+
+      sharedCategoryIds = new Set((catSharesRes.data as { category_id: string }[] | null | undefined)?.map((r) => r.category_id) || []);
+      sharedLinkIds = new Set((linkSharesRes as unknown as { data: { link_id: string }[] }).data?.map((r) => r.link_id) || []);
+      sharedTagIds = new Set((tagSharesRes as unknown as { data: { tag_id: string }[] }).data?.map((r) => r.tag_id) || []);
+    }
+
     // 3) Sestav finální strukturu s linky a tagy
     const processed: Category[] = cats.map((c) => {
       const permission = (c.permission ?? undefined) as Category['permission'];
@@ -224,8 +244,12 @@ export const Dashboard = () => {
           favicon_url: link.favicon_url,
           is_archived: (link as unknown as { is_archived?: boolean }).is_archived ?? false,
           display_order: link.display_order,
-          tags: link.link_tags?.map((lt) => ({ name: lt.tags.name })) || [],
-          isSharedLink: !!allowedLinkIds && allowedLinkIds.includes(link.id),
+          tags: link.link_tags?.map((lt) => ({ id: lt.tags.id, name: lt.tags.name })) || [],
+          // Sdílený pro aktuální pohled: buď protože se zobrazuje přes omezený seznam, nebo proto, že vlastník sdílí konkrétní odkaz/štítek
+          isSharedLink:
+            (!!allowedLinkIds && allowedLinkIds.includes(link.id)) ||
+            (sharedLinkIds.size > 0 && sharedLinkIds.has(link.id)) ||
+            (sharedTagIds.size > 0 && (link.link_tags || []).some((lt) => sharedTagIds.has(lt.tags.id))),
         }))
         .filter((link) => {
           if (!allowedLinkIds) return true;
@@ -243,6 +267,7 @@ export const Dashboard = () => {
         permission,
         sharedLinkIds: allowedLinkIds,
         color_hex: c.color_hex,
+        hasSharedContent: sharedCategoryIds.has(c.id) || links.some((l) => l.isSharedLink),
       };
     });
     setCategories(processed);

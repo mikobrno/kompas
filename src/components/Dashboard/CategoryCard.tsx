@@ -29,6 +29,7 @@ interface Category {
   isShared?: boolean;
   permission?: 'viewer' | 'editor' | 'owner';
   sharedLinkIds?: string[] | null;
+  hasSharedContent?: boolean; // vlastníci: kategorie je sdílená nebo obsahuje sdílené položky
 }
 
 interface CategoryCardProps {
@@ -81,6 +82,11 @@ export const CategoryCard = ({
   const badgeStyle = useMemo(() => ({
     backgroundColor: hexToRgba(accent, 0.22),
     color: accent,
+  }), [accent]);
+  const partialBadgeStyle = useMemo(() => ({
+    backgroundColor: hexToRgba(accent, 0.08),
+    color: accent,
+    border: `1px solid ${hexToRgba(accent, 0.55)}`,
   }), [accent]);
   const tagStyle = useMemo(() => ({
     borderColor: hexToRgba(accent, 0.3),
@@ -312,17 +318,25 @@ export const CategoryCard = ({
           </span>
           <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-2 flex-1">
             <span className="whitespace-normal break-words" title={category.name}>{category.name}</span>
-            {category.isShared && (!category.sharedLinkIds || category.sharedLinkIds.length === 0) && (
+            {(() => {
+              const isFullShared = category.isShared && (!category.sharedLinkIds || category.sharedLinkIds.length === 0);
+              const isPartialShared = !isFullShared && !!category.hasSharedContent;
+              if (!isFullShared && !isPartialShared) return null;
+              const label = isFullShared
+                ? `Sdílená celá kategorie${categoryPermLabel ? ` – ${categoryPermLabel}` : ''}`
+                : 'Obsahuje sdílené položky';
+              return (
               <span
                 className="inline-flex items-center text-xs rounded-full px-1.5 py-0.5"
-                style={badgeStyle}
-                title={`Sdílená celá kategorie${categoryPermLabel ? ` – ${categoryPermLabel}` : ''}`}
-                aria-label={`Sdílená celá kategorie${categoryPermLabel ? ` – ${categoryPermLabel}` : ''}`}
+                style={isFullShared ? badgeStyle : partialBadgeStyle}
+                title={label}
+                aria-label={label}
               >
                 <Users className="w-3.5 h-3.5" />
                 <span className="sr-only">Sdílené</span>
               </span>
-            )}
+              );
+            })()}
           </span>
         </button>
 
