@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import SearchableSelect from '../Inputs/SearchableSelect';
 
 interface EditLinkModalProps {
   isOpen: boolean;
@@ -14,6 +15,8 @@ export const EditLinkModal = ({ isOpen, linkId, onClose, onSuccess }: EditLinkMo
   const [url, setUrl] = useState('');
   const [tags, setTags] = useState('');
   const [loading, setLoading] = useState(false);
+  const [categoryId, setCategoryId] = useState('');
+  const [categories, setCategories] = useState<{ id: string; name: string; permission: 'viewer' | 'editor' | 'owner' | null }[]>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -27,6 +30,7 @@ export const EditLinkModal = ({ isOpen, linkId, onClose, onSuccess }: EditLinkMo
       if (link) {
         setDisplayName(link.display_name);
         setUrl(link.url);
+        setCategoryId(link.category_id as string);
       }
 
       const { data: linkTags } = await supabase
@@ -36,6 +40,13 @@ export const EditLinkModal = ({ isOpen, linkId, onClose, onSuccess }: EditLinkMo
 
   const tagNames = (linkTags || []).map((lt) => (lt as unknown as { tags: { name: string } }).tags.name);
       setTags(tagNames.join(', '));
+
+      // Load selectable categories (owner or editor) for moving the link
+      const { data: rpcCats } = await supabase
+        .rpc('get_accessible_categories_with_permission');
+      const selectable = (rpcCats || []) as { id: string; name: string; permission: 'viewer' | 'editor' | 'owner' | null }[];
+      const filtered = selectable.filter((c) => c.permission === 'owner' || c.permission === 'editor');
+      setCategories(filtered);
     };
     load();
   }, [isOpen, linkId]);
@@ -46,9 +57,29 @@ export const EditLinkModal = ({ isOpen, linkId, onClose, onSuccess }: EditLinkMo
     e.preventDefault();
     setLoading(true);
 
+    // If category changed, place link at end of target category
+  const targetCategoryId = categoryId;
+    if (!targetCategoryId) {
+      setLoading(false);
+      return;
+    }
+    // Compute next display_order in target category
+    let nextOrder = 0;
+    const { data: maxRow } = await supabase
+      .from('links')
+      .select('display_order')
+      .eq('category_id', targetCategoryId)
+      .eq('is_archived', false)
+      .order('display_order', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (maxRow && typeof (maxRow as { display_order?: number }).display_order === 'number') {
+      nextOrder = (maxRow as { display_order: number }).display_order + 1;
+    }
+
     const { error: updateError } = await supabase
       .from('links')
-      .update({ display_name: displayName, url })
+      .update({ display_name: displayName, url, category_id: targetCategoryId, display_order: nextOrder })
       .eq('id', linkId);
 
     if (updateError) {
@@ -102,6 +133,27 @@ export const EditLinkModal = ({ isOpen, linkId, onClose, onSuccess }: EditLinkMo
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              Kategorie
+            </label>
+            {(() => {
+              const options = [...categories.map((c) => ({ value: c.id, label: c.name }))];
+              if (categoryId && !options.some((o) => o.value === categoryId)) {
+                options.unshift({ value: categoryId, label: 'Aktuální kategorie' });
+              }
+              return (
+                <SearchableSelect
+                  options={options}
+                  value={categoryId}
+                  onChange={(val) => setCategoryId(val)}
+                  placeholder="Hledejte psaním..."
+                  ariaLabel="Kategorie odkazu"
+                  className="w-full px-4 py-3 rounded-xl border border-[#f05a28]/30 dark:border-slate-600 bg-white/90 dark:bg-slate-800 text-slate-900 dark:text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-[#f05a28]/60 focus:border-[#f05a28]/40 transition"
+                />
+              );
+            })()}
+          </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Název odkazu

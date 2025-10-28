@@ -1,7 +1,7 @@
 /* eslint-disable no-inline-styles/no-inline-styles */
 import { useEffect, useMemo, useState } from 'react';
 import type { DragEvent } from 'react';
-import { MoreVertical, Edit2, Trash2, Share2, Archive, Pin, UserPlus, Users, ChevronDown, Plus } from 'lucide-react';
+import { MoreVertical, Edit2, Trash2, Share2, Archive, Pin, Users, ChevronDown, Plus } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { bestFaviconFor, extractHostname, iconHorseFavicon } from '../../lib/favicons';
 import { useAuth } from '../../contexts/AuthContext';
@@ -28,6 +28,7 @@ interface Category {
   links: Link[];
   isShared?: boolean;
   permission?: 'viewer' | 'editor' | 'owner';
+  sharedLinkIds?: string[] | null;
 }
 
 interface CategoryCardProps {
@@ -311,15 +312,15 @@ export const CategoryCard = ({
           </span>
           <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-2 flex-1">
             <span className="whitespace-normal break-words" title={category.name}>{category.name}</span>
-            {category.isShared && (
+            {category.isShared && (!category.sharedLinkIds || category.sharedLinkIds.length === 0) && (
               <span
-                className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5"
+                className="inline-flex items-center text-xs rounded-full px-1.5 py-0.5"
                 style={badgeStyle}
-                title={`Sdílená kategorie${categoryPermLabel ? ` – ${categoryPermLabel}` : ''}`}
-                aria-label={`Sdílená kategorie${categoryPermLabel ? ` – ${categoryPermLabel}` : ''}`}
+                title={`Sdílená celá kategorie${categoryPermLabel ? ` – ${categoryPermLabel}` : ''}`}
+                aria-label={`Sdílená celá kategorie${categoryPermLabel ? ` – ${categoryPermLabel}` : ''}`}
               >
-                <Users className="w-3 h-3" />
-                <span>Sdílená</span>
+                <Users className="w-3.5 h-3.5" />
+                <span className="sr-only">Sdílené</span>
               </span>
             )}
           </span>
@@ -452,13 +453,13 @@ export const CategoryCard = ({
                     </p>
                     {link.isSharedLink && (
                       <span
-                        className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] flex-shrink-0"
+                        className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[11px] flex-shrink-0"
                         style={badgeStyle}
-                        title="Sdíleno odkazem"
-                        aria-label="Sdíleno odkazem"
+                        title="Sdílené (odkaz/štítek)"
+                        aria-label="Sdílené (odkaz/štítek)"
                       >
-                        <UserPlus className="w-3 h-3" />
-                        <span>Sdílené</span>
+                        <Users className="w-3 h-3" />
+                        <span className="sr-only">Sdílené</span>
                       </span>
                     )}
                   </div>
