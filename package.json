@@ -12,7 +12,9 @@
     "test": "vitest",
     "test:run": "vitest run",
     "coverage": "vitest run --coverage",
-    "e2e:share": "node scripts/e2e_share_check.mjs"
+    "e2e:share": "node scripts/e2e_share_check.mjs",
+    "db:push:docker:url": "powershell -ExecutionPolicy Bypass -File ./scripts/migrate_remote.ps1 -DatabaseUrl $env:DATABASE_URL",
+    "db:push:docker:ref": "powershell -ExecutionPolicy Bypass -File ./scripts/migrate_remote.ps1 -ProjectRef $env:SUPABASE_PROJECT_REF"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
