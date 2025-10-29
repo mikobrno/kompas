@@ -167,9 +167,9 @@ export const Dashboard = () => {
   const loadCategories = useCallback(async () => {
     if (!user) return;
     // 1) Získej přístupné kategorie s oprávněním pomocí RPC
-    const rpcArgs = previewUserId ? { override_user_id: previewUserId } : undefined;
-    const { data: rpcCategories, error: rpcError } = await supabase
-      .rpc('get_accessible_categories_with_permission', rpcArgs);
+    const { data: rpcCategories, error: rpcError } = previewUserId
+      ? await supabase.rpc('admin_get_accessible_categories_with_permission', { p_target_user: previewUserId })
+      : await supabase.rpc('get_accessible_categories_with_permission');
 
     if (rpcError) {
       console.error('Error loading accessible categories via RPC:', rpcError);

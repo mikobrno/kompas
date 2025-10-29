@@ -10,6 +10,12 @@ type Fixtures = {
   rpc: Record<string, unknown>;
 };
 let fixtures: Fixtures = { byTable: {}, rpc: {} };
+const authState = {
+  user: { id: 'owner' },
+  profile: { id: 'owner', email: 'owner@example.com', full_name: 'Owner', role: 'admin', theme: 'light' },
+  impersonatedUserId: null as string | null,
+};
+
 vi.mock('../../../lib/supabase', () => {
   type Chain = {
     _data: unknown;
@@ -63,11 +69,7 @@ vi.mock('../../../lib/supabase', () => {
 });
 
 vi.mock('../../../contexts/AuthContext', () => ({
-  useAuth: () => ({
-    user: { id: 'owner' },
-    profile: { id: 'owner', email: 'owner@example.com', full_name: 'Owner', role: 'admin', theme: 'light' },
-    impersonatedUserId: 'zuzana',
-  }),
+  useAuth: () => authState,
 }));
 
 // Make sure vitest-dom types are available via setup file
@@ -78,9 +80,10 @@ describe('Dashboard sharing & impersonation', () => {
   });
 
   it('shows per-category shared data for impersonated user', async () => {
+    authState.impersonatedUserId = 'zuzana';
     fixtures = {
       rpc: {
-        get_accessible_categories_with_permission: [
+        admin_get_accessible_categories_with_permission: [
           { id: 'cat1', name: 'Cat A', owner_id: 'ownerA', is_archived: false, display_order: 0, created_at: new Date().toISOString(), permission: 'viewer', shared_link_ids: null },
         ],
       },
@@ -100,6 +103,7 @@ describe('Dashboard sharing & impersonation', () => {
   });
 
   it('marks per-link shared links with badge', async () => {
+    authState.impersonatedUserId = null;
     fixtures = {
       rpc: {
         get_accessible_categories_with_permission: [
