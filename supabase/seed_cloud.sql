@@ -18,6 +18,18 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+-- Ensure seeding is idempotent by clearing existing data first
+TRUNCATE public.link_tags,
+		 public.links,
+		 public.tags,
+		 public.category_shares,
+		 public.link_shares,
+		 public.groups,
+		 public.group_members,
+		 public.categories,
+		 public.users
+		 RESTART IDENTITY CASCADE;
+
 --
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: -
 --
