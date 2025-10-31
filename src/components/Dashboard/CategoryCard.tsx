@@ -70,12 +70,12 @@ export const CategoryCard = ({
 
   const accent = useMemo(() => normalizeHexColor(category.color_hex), [category.color_hex]);
   const cardStyle = useMemo(() => ({
-    borderColor: hexToRgba(accent, 0.4),
-    boxShadow: `0 18px 35px ${hexToRgba(accent, 0.12)}`,
+    borderColor: hexToRgba(accent, 0.3),
+    boxShadow: `0 8px 32px ${hexToRgba(accent, 0.15)}, 0 2px 8px ${hexToRgba(accent, 0.08)}`,
   }), [accent]);
   const headerStyle = useMemo(() => ({
-    borderColor: hexToRgba(accent, 0.5),
-    background: `linear-gradient(135deg, ${hexToRgba(accent, 0.24)} 0%, ${hexToRgba(accent, 0.1)} 100%)`,
+    borderColor: hexToRgba(accent, 0.4),
+    background: `linear-gradient(135deg, ${hexToRgba(accent, 0.18)} 0%, ${hexToRgba(accent, 0.08)} 100%)`,
   }), [accent]);
   const accentIconStyle = useMemo(() => ({ color: accent }), [accent]);
   const badgeStyle = useMemo(() => ({
@@ -296,26 +296,26 @@ export const CategoryCard = ({
 
   return (
     <div
-      className={`bg-white/85 dark:bg-slate-800/75 backdrop-blur-sm rounded-xl shadow-sm border transition-colors ${showMenu || showLinkMenu ? 'relative z-50' : ''}`}
+      className={`bg-white/90 dark:bg-slate-800/85 backdrop-blur-xl rounded-2xl shadow-md border transition-all duration-300 hover:shadow-xl ${showMenu || showLinkMenu ? 'relative z-50' : ''}`}
       style={cardStyle}
     >
       <div
-        className="px-3 py-2 flex items-center justify-between border-b rounded-t-xl bg-white/20 dark:bg-slate-800/60"
+        className="px-4 py-3 flex items-center justify-between border-b rounded-t-2xl backdrop-blur-md"
         style={headerStyle}
       >
         <button
           type="button"
           onClick={toggleCollapse}
-          className="group flex items-center gap-2.5 flex-1 pr-3 py-1.5 rounded-lg border border-transparent bg-transparent text-left transition hover:border-white/40 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/40 dark:hover:bg-slate-700/50"
+          className="group flex items-center gap-3 flex-1 pr-3 py-2 rounded-xl border border-transparent bg-transparent text-left transition-all duration-200 hover:border-white/50 hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/50 dark:hover:bg-slate-700/40"
           aria-label={collapsed ? 'Rozbalit kategorii' : 'Sbalit kategorii'}
         >
-          <span className="flex items-center justify-center w-6 h-6 rounded-lg border border-white/30 bg-white/25 backdrop-blur dark:border-slate-500/40 dark:bg-slate-700/60">
+          <span className="flex items-center justify-center w-7 h-7 rounded-xl border border-white/40 bg-white/30 backdrop-blur-sm shadow-sm dark:border-slate-500/50 dark:bg-slate-700/70 transition-transform duration-300 group-hover:scale-110">
             <ChevronDown
-              className={`w-3.5 h-3.5 transition-transform ${collapsed ? '-rotate-90' : ''}`}
+              className={`w-4 h-4 transition-transform duration-300 ${collapsed ? '-rotate-90' : ''}`}
               style={accentIconStyle}
             />
           </span>
-          <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-2 flex-1">
+          <span className="font-semibold text-base text-slate-900 dark:text-white flex items-center gap-2.5 flex-1">
             <span className="whitespace-normal break-words" title={category.name}>{category.name}</span>
             {(() => {
               const isFullShared = category.isShared && (!category.sharedLinkIds || category.sharedLinkIds.length === 0);
@@ -326,7 +326,7 @@ export const CategoryCard = ({
                 : 'Obsahuje sdílené položky';
               return (
               <span
-                className="inline-flex items-center text-xs rounded-full px-1.5 py-0.5"
+                className="inline-flex items-center text-xs rounded-full px-2 py-1 shadow-sm"
                 style={isFullShared ? badgeStyle : partialBadgeStyle}
                 title={label}
                 aria-label={label}
@@ -343,7 +343,7 @@ export const CategoryCard = ({
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="p-1 rounded border border-white/30 bg-white/20 backdrop-blur hover:bg-white/35 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition"
+              className="p-2 rounded-xl border border-white/40 bg-white/25 backdrop-blur-sm hover:bg-white/40 dark:border-slate-500/50 dark:bg-slate-700/60 dark:hover:bg-slate-700/80 transition-all duration-200 shadow-sm hover:scale-105"
               title="Možnosti"
             >
               <MoreVertical className="w-4 h-4" style={accentIconStyle} />
@@ -356,7 +356,7 @@ export const CategoryCard = ({
                   onClick={() => setShowMenu(false)}
                 />
                 <div
-                  className="absolute right-0 mt-1 w-48 bg-white/95 dark:bg-slate-800 rounded-xl shadow-xl border z-50"
+                  className="absolute right-0 mt-2 w-52 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border overflow-hidden z-50"
                   style={subtleBorderStyle}
                 >
                   <button
@@ -364,10 +364,10 @@ export const CategoryCard = ({
                       setShowMenu(false);
                       onEdit(category);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-white/30 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-slate-700 dark:text-slate-200"
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
                   >
-                    <Edit2 className="w-4 h-4" />
-                    <span>Přejmenovat</span>
+                    <Edit2 className="w-4.5 h-4.5" />
+                    <span className="font-medium">Přejmenovat</span>
                   </button>
                   {isOwner && (
                     <button
@@ -375,10 +375,10 @@ export const CategoryCard = ({
                         setShowMenu(false);
                         onShare(category);
                       }}
-                      className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-white/30 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-slate-700 dark:text-slate-200"
+                      className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
                     >
-                      <Share2 className="w-4 h-4" />
-                      <span>Sdílet</span>
+                      <Share2 className="w-4.5 h-4.5" />
+                      <span className="font-medium">Sdílet</span>
                     </button>
                   )}
                   <button
@@ -386,20 +386,20 @@ export const CategoryCard = ({
                       setShowMenu(false);
                       onArchive(category.id);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-white/30 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-slate-700 dark:text-slate-200"
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
                   >
-                    <Archive className="w-4 h-4" />
-                    <span>Archivovat</span>
+                    <Archive className="w-4.5 h-4.5" />
+                    <span className="font-medium">Archivovat</span>
                   </button>
                   <button
                     onClick={() => {
                       setShowMenu(false);
                       onDelete(category.id);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-red-200/70 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-red-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-red-600 dark:text-red-400"
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-left bg-white/10 backdrop-blur-sm hover:bg-red-50/50 dark:bg-slate-700/40 dark:hover:bg-red-900/20 transition-all duration-200 text-red-600 dark:text-red-400"
                   >
-                    <Trash2 className="w-4 h-4" />
-                    <span>Smazat</span>
+                    <Trash2 className="w-4.5 h-4.5" />
+                    <span className="font-medium">Smazat</span>
                   </button>
                 </div>
               </>
@@ -409,16 +409,16 @@ export const CategoryCard = ({
       </div>
 
       {!collapsed && (
-        <div className="p-4 space-y-2" onDragOver={onCategoryAreaDragOver} onDrop={onCategoryAreaDrop}>
+        <div className="p-5 space-y-3" onDragOver={onCategoryAreaDragOver} onDrop={onCategoryAreaDrop}>
           {linksLocal.filter(l => !l.is_archived).length === 0 ? (
-          <p className="text-center text-slate-500 dark:text-slate-400 py-6 text-sm">
+          <p className="text-center text-slate-500 dark:text-slate-400 py-8 text-sm font-medium">
             Žádné odkazy
           </p>
         ) : (
           linksLocal.filter(l => !l.is_archived).map((link) => (
             <div
               key={link.id}
-              className="group relative bg-white/80 dark:bg-slate-800/65 border rounded-lg p-2.5 transition hover:shadow-md"
+              className="group relative bg-white/85 dark:bg-slate-800/75 backdrop-blur-md border rounded-2xl p-3.5 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
               style={linkBorderStyle}
               draggable={canEdit}
               onDragStart={(e) => onLinkDragStart(e, link.id)}
@@ -429,44 +429,46 @@ export const CategoryCard = ({
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-3"
+                className="flex items-center space-x-3.5"
               >
                 {(() => {
                   const host = extractHostname(link.url);
                   const primary = link.favicon_url || (host ? bestFaviconFor(link.url, 32) : null);
                   if (!primary) {
-                    return <div className="w-5 h-5 bg-slate-300 dark:bg-slate-600 rounded flex-shrink-0" />;
+                    return <div className="w-7 h-7 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-600 dark:to-slate-700 rounded-xl flex-shrink-0 shadow-sm" />;
                   }
                   return (
-                    <img
-                      src={primary}
-                      alt=""
-                      className="w-5 h-5 flex-shrink-0"
-                      data-favicon-attempt="primary"
-                      onError={(e) => {
-                        const el = e.currentTarget as HTMLImageElement & { dataset: { faviconAttempt?: string } };
-                        if (!host) {
-                          el.style.display = 'none';
-                          return;
-                        }
-                        if (el.dataset.faviconAttempt === 'primary') {
-                          el.dataset.faviconAttempt = 'secondary';
-                          el.src = iconHorseFavicon(host);
-                        } else {
-                          el.style.display = 'none';
-                        }
-                      }}
-                    />
+                    <div className="w-7 h-7 rounded-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center shadow-sm flex-shrink-0">
+                      <img
+                        src={primary}
+                        alt=""
+                        className="w-6 h-6 object-contain"
+                        data-favicon-attempt="primary"
+                        onError={(e) => {
+                          const el = e.currentTarget as HTMLImageElement & { dataset: { faviconAttempt?: string } };
+                          if (!host) {
+                            el.style.display = 'none';
+                            return;
+                          }
+                          if (el.dataset.faviconAttempt === 'primary') {
+                            el.dataset.faviconAttempt = 'secondary';
+                            el.src = iconHorseFavicon(host);
+                          } else {
+                            el.style.display = 'none';
+                          }
+                        }}
+                      />
+                    </div>
                   );
                 })()}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <p className="font-medium text-sm text-slate-900 dark:text-white truncate">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">
                       {link.display_name}
                     </p>
                     {link.isSharedLink && (
                       <span
-                        className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[11px] flex-shrink-0"
+                        className="inline-flex items-center rounded-full px-2 py-1 text-[11px] flex-shrink-0 shadow-sm"
                         style={badgeStyle}
                         title="Sdílené (odkaz/štítek)"
                         aria-label="Sdílené (odkaz/štítek)"
@@ -477,11 +479,11 @@ export const CategoryCard = ({
                     )}
                   </div>
                   {link.tags && link.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-1">
+                    <div className="flex flex-wrap gap-2 mt-2">
                       {link.tags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex items-center text-[11px] font-medium px-2.5 py-0.5 rounded-full border backdrop-blur-sm shadow-sm"
+                          className="inline-flex items-center text-[11px] font-semibold px-3 py-1 rounded-full border backdrop-blur-sm shadow-sm transition-all duration-200 hover:scale-105"
                           style={tagStyle}
                         >
                           {tag.name}
@@ -492,10 +494,10 @@ export const CategoryCard = ({
                 </div>
               </a>
 
-              <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition">
+              <div className="absolute right-2.5 top-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 <button
                   onClick={() => setShowLinkMenu(showLinkMenu === link.id ? null : link.id)}
-                  className="p-1 rounded border border-white/30 bg-white/20 backdrop-blur hover:bg-white/35 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70"
+                  className="p-1.5 rounded-xl border border-white/40 bg-white/30 backdrop-blur-sm hover:bg-white/50 dark:border-slate-500/50 dark:bg-slate-700/60 dark:hover:bg-slate-700/80 shadow-sm transition-all duration-200 hover:scale-105"
                   title="Možnosti odkazu"
                 >
                   <MoreVertical className="w-4 h-4" style={accentIconStyle} />
@@ -508,7 +510,7 @@ export const CategoryCard = ({
                       onClick={() => setShowLinkMenu(null)}
                     />
                     <div
-                      className="absolute right-0 mt-1 w-40 bg-white/95 dark:bg-slate-800 rounded-xl shadow-xl border z-50"
+                      className="absolute right-0 mt-2 w-44 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border overflow-hidden z-50"
                       style={subtleBorderStyle}
                     >
                       <button
@@ -516,10 +518,10 @@ export const CategoryCard = ({
                           setShowLinkMenu(null);
                           pinLink(link.id);
                         }}
-                        className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-white/30 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-slate-700 dark:text-slate-200"
+                        className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
                       >
-                        <Pin className="w-4 h-4" />
-                        <span>Připnout</span>
+                        <Pin className="w-4.5 h-4.5" />
+                        <span className="font-medium">Připnout</span>
                       </button>
                       {canManageLinks && (
                         <button
@@ -527,10 +529,10 @@ export const CategoryCard = ({
                             setShowLinkMenu(null);
                             onShareLink(link.id, link.display_name);
                           }}
-                          className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-white/30 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-slate-700 dark:text-slate-200"
+                          className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
                         >
-                          <Share2 className="w-4 h-4" />
-                          <span>Sdílet</span>
+                          <Share2 className="w-4.5 h-4.5" />
+                          <span className="font-medium">Sdílet</span>
                         </button>
                       )}
                       {canManageLinks && (
@@ -539,10 +541,10 @@ export const CategoryCard = ({
                             setShowLinkMenu(null);
                             onEditLink(link.id);
                           }}
-                          className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-white/30 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-slate-700 dark:text-slate-200"
+                          className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
                         >
-                          <Edit2 className="w-4 h-4" />
-                          <span>Upravit</span>
+                          <Edit2 className="w-4.5 h-4.5" />
+                          <span className="font-medium">Upravit</span>
                         </button>
                       )}
                       {canManageLinks && (
@@ -559,10 +561,10 @@ export const CategoryCard = ({
                               onRefresh();
                             }
                           }}
-                          className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-white/30 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-slate-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-slate-700 dark:text-slate-200"
+                          className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
                         >
-                          <Archive className="w-4 h-4" />
-                          <span>Archivovat</span>
+                          <Archive className="w-4.5 h-4.5" />
+                          <span className="font-medium">Archivovat</span>
                         </button>
                       )}
                       {canManageLinks && (
@@ -571,10 +573,10 @@ export const CategoryCard = ({
                             setShowLinkMenu(null);
                             deleteLink(link.id);
                           }}
-                          className="w-full flex items-center space-x-2 px-4 py-2 text-left rounded-lg border border-red-200/70 bg-white/15 backdrop-blur hover:bg-white/30 dark:border-red-500/40 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition text-red-600 dark:text-red-400"
+                          className="w-full flex items-center space-x-3 px-4 py-3 text-left bg-white/10 backdrop-blur-sm hover:bg-red-50/50 dark:bg-slate-700/40 dark:hover:bg-red-900/20 transition-all duration-200 text-red-600 dark:text-red-400"
                         >
-                          <Trash2 className="w-4 h-4" />
-                          <span>Smazat</span>
+                          <Trash2 className="w-4.5 h-4.5" />
+                          <span className="font-medium">Smazat</span>
                         </button>
                       )}
                     </div>
@@ -585,35 +587,35 @@ export const CategoryCard = ({
           ))
         )}
         {canManageLinks && onAddLink && (
-          <div className="pt-2 flex justify-end">
+          <div className="pt-3 flex justify-end">
             <button
               onClick={() => onAddLink(category.id)}
-              className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-white/30 bg-white/25 backdrop-blur hover:bg-white/45 dark:border-slate-500/40 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition"
+              className="inline-flex items-center justify-center w-10 h-10 rounded-2xl border border-white/40 bg-white/30 backdrop-blur-sm hover:bg-white/50 dark:border-slate-500/50 dark:bg-slate-700/50 dark:hover:bg-slate-700/70 transition-all duration-200 shadow-sm hover:scale-110"
               title="Přidat odkaz"
               aria-label="Přidat odkaz"
             >
-              <Plus className="w-4 h-4" style={accentIconStyle} />
+              <Plus className="w-5 h-5" style={accentIconStyle} />
             </button>
           </div>
         )}
 
         {linksLocal.some(l => l.is_archived) && (
-          <div className="pt-3">
+          <div className="pt-4 border-t" style={subtleBorderStyle}>
             <h4
-              className="text-xs uppercase tracking-wide mb-1.5"
+              className="text-xs uppercase tracking-wider font-bold mb-3"
               style={accentIconStyle}
             >
               Archivované odkazy
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {linksLocal.filter(l => l.is_archived).map(link => (
                 <div
                   key={link.id}
-                  className="relative bg-white/70 dark:bg-slate-800/50 border rounded-lg p-2.5 opacity-80 hover:opacity-100 transition"
+                  className="relative bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm border rounded-xl p-3 opacity-75 hover:opacity-100 transition-all duration-200"
                   style={subtleBorderStyle}
                 >
                   <div className="flex items-center justify-between">
-                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="truncate text-slate-700 dark:text-slate-300">
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="truncate text-slate-700 dark:text-slate-300 font-medium text-sm">
                       {link.display_name}
                     </a>
                     {canManageLinks && (
@@ -630,14 +632,14 @@ export const CategoryCard = ({
                               onRefresh();
                             }
                           }}
-                          className="px-2 py-1 text-xs rounded border transition hover:bg-white/40 dark:hover:bg-slate-700"
+                          className="px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all duration-200 hover:bg-white/40 dark:hover:bg-slate-700 shadow-sm"
                           style={linkBorderStyle}
                         >
                           Obnovit
                         </button>
                         <button
                           onClick={() => deleteLink(link.id)}
-                          className="px-2 py-1 text-xs rounded border border-red-300 text-red-600 dark:border-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10"
+                          className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-red-300/70 text-red-600 dark:border-red-500/70 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 shadow-sm transition-all duration-200"
                         >
                           Smazat
                         </button>

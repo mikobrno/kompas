@@ -389,7 +389,7 @@ export const Dashboard = () => {
   const sharedCategories = filteredCategories.filter((cat: Category) => cat.isShared);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-blue-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
       <Header
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -404,13 +404,13 @@ export const Dashboard = () => {
 
       <PinnedLinksBar key={refreshKey} />
 
-      <main className="max-w-screen-2xl mx-auto px-3 sm:px-4 lg:px-6 py-6">
+      <main className="max-w-screen-2xl mx-auto px-3 sm:px-4 lg:px-6 py-8">
         {ownCategories.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+          <div className="mb-10">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-7 tracking-tight">
               Moje kategorie
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
               {ownCategories.map((category: Category) => {
                 const forcedExpanded = !!searchQuery || collapseMode === 'expanded' || (collapseMode === 'collapsed' && manualExpandedCategories.includes(category.id));
                 const forcedCollapsed = collapseMode === 'collapsed' && !forcedExpanded;
@@ -446,11 +446,11 @@ export const Dashboard = () => {
         )}
 
         {sharedCategories.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+          <div className="mb-10">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-7 tracking-tight">
               Sdíleno se mnou
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
               {sharedCategories.map((category: Category) => {
                 const forcedExpanded = !!searchQuery || collapseMode === 'expanded' || (collapseMode === 'collapsed' && manualExpandedCategories.includes(category.id));
                 const forcedCollapsed = collapseMode === 'collapsed' && !forcedExpanded;
@@ -479,20 +479,22 @@ export const Dashboard = () => {
         )}
 
         {filteredCategories.length === 0 && (
-          <div className="text-center py-20">
-            <FolderPlus className="w-16 h-16 text-slate-300 dark:text-slate-700 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-slate-900 dark:text-white mb-2">
+          <div className="text-center py-24">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 mb-6 shadow-lg">
+              <FolderPlus className="w-10 h-10 text-slate-400 dark:text-slate-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
               {searchQuery ? 'Nenalezeny žádné výsledky' : 'Žádné kategorie'}
             </h3>
-            <p className="text-slate-600 dark:text-slate-400 mb-6">
+            <p className="text-slate-600 dark:text-slate-400 mb-8 text-lg">
               {searchQuery ? 'Zkuste jiné hledání' : 'Začněte vytvořením nové kategorie'}
             </p>
             {!searchQuery && (
               <button
                 onClick={() => setShowAddCategory(true)}
-                className="inline-flex items-center space-x-2 rounded-full border border-[#f05a28]/40 bg-white/30 backdrop-blur px-6 py-3 text-[#f05a28] shadow-sm transition hover:bg-white/45 hover:border-[#f05a28]/60"
+                className="inline-flex items-center space-x-3 rounded-2xl border-2 border-[#f05a28]/50 bg-gradient-to-br from-[#f05a28] to-[#d94b1f] backdrop-blur-sm px-8 py-4 text-white shadow-lg shadow-[#f05a28]/25 transition-all duration-300 hover:shadow-xl hover:shadow-[#f05a28]/40 hover:scale-105 font-semibold"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-6 h-6" />
                 <span>Vytvořit první kategorii</span>
               </button>
             )}
