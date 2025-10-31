@@ -111,22 +111,24 @@ export const PinnedLinksBar = () => {
   if (pinnedLinks.length === 0) return null;
 
   return (
-    <div className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center space-x-2 mb-3">
-          <Pin className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-          <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">
+    <div className="bg-gradient-to-b from-slate-100/80 to-slate-50/80 dark:from-slate-900/80 dark:to-slate-900/50 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-700/60">
+      <div className="max-w-screen-2xl mx-auto px-3 sm:px-4 lg:px-6 py-5">
+        <div className="flex items-center space-x-2.5 mb-4">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
+            <Pin className="w-4 h-4 text-white" />
+          </div>
+          <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">
             Připnuté odkazy
           </h3>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           {pinnedLinks.map((pinnedLink: PinnedLink) => {
             const link = pinnedLink.links;
             return (
               <div
                 key={pinnedLink.link_id}
-                className="group relative bg-white dark:bg-slate-800 rounded-lg px-4 py-2 border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition"
+                className="group relative bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-2xl px-5 py-3 border border-slate-200/80 dark:border-slate-700/80 hover:border-blue-400/60 dark:hover:border-blue-500/60 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 hover:scale-105 cursor-move"
                 draggable
                 onDragStart={(e) => onDragStart(pinnedLink.link_id, e)}
                 onDragOver={onDragOver}
@@ -136,21 +138,23 @@ export const PinnedLinksBar = () => {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center space-x-2"
+                  className="flex items-center space-x-3"
                 >
-                  {link.favicon_url ? (
-                    <img
-                      src={link.favicon_url}
-                      alt=""
-                      className="w-4 h-4"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <div className="w-4 h-4 bg-slate-200 dark:bg-slate-700 rounded" />
-                  )}
-                  <span className="text-sm font-medium text-slate-900 dark:text-white">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-lg overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center shadow-sm">
+                    {link.favicon_url ? (
+                      <img
+                        src={link.favicon_url}
+                        alt=""
+                        className="w-5 h-5 object-contain"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-4 h-4 bg-gradient-to-br from-slate-300 to-slate-400 dark:from-slate-600 dark:to-slate-700 rounded" />
+                    )}
+                  </div>
+                  <span className="text-sm font-semibold text-slate-900 dark:text-white tracking-tight">
                     {link.display_name}
                   </span>
                 </a>
@@ -160,11 +164,11 @@ export const PinnedLinksBar = () => {
                     e.preventDefault();
                     unpinLink(pinnedLink.link_id);
                   }}
-                  className="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg shadow-red-500/30 hover:scale-110"
                   title="Odepnout"
                   aria-label="Odepnout"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             );
