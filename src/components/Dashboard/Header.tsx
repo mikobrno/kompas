@@ -63,7 +63,7 @@ export const Header = ({ searchQuery, onSearchChange, onOpenSettings, onOpenAdmi
             <button onClick={clearImpersonation} className="underline font-semibold hover:text-amber-700 dark:hover:text-amber-100 transition">Ukončit náhled</button>
           </div>
         )}
-        <div className="flex items-center justify-between h-18 gap-4 py-3">
+        <div className="flex items-center justify-between h-20 gap-4 py-3">
           <div className="flex items-center space-x-3.5">
             <BrandLogo size={42} />
             <div>
@@ -81,7 +81,7 @@ export const Header = ({ searchQuery, onSearchChange, onOpenSettings, onOpenAdmi
               Hledat odkazy
             </label>
             <div className="relative w-full max-w-lg">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[#f05a28] dark:text-[#ff8b5c]" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]" />
               {onToggleCollapseAll && (
                 <button
                   type="button"
@@ -112,7 +112,7 @@ export const Header = ({ searchQuery, onSearchChange, onOpenSettings, onOpenAdmi
                 className="inline-flex items-center gap-2.5 rounded-2xl border-2 border-[#f05a28]/40 bg-gradient-to-br from-[#f05a28] to-[#d94b1f] backdrop-blur-sm px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#f05a28]/20 transition-all duration-200 hover:shadow-lg hover:shadow-[#f05a28]/30 hover:scale-105"
                 aria-label="Přidat kategorii"
               >
-                <Plus className="w-4.5 h-4.5" />
+                <Plus className="w-5 h-5" />
                 <span className="hidden sm:inline">Nová kategorie</span>
               </button>
             )}

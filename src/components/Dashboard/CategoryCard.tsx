@@ -366,7 +366,7 @@ export const CategoryCard = ({
                     }}
                     className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
                   >
-                    <Edit2 className="w-4.5 h-4.5" />
+                    <Edit2 className="w-5 h-5" />
                     <span className="font-medium">Přejmenovat</span>
                   </button>
                   {isOwner && (
@@ -377,7 +377,7 @@ export const CategoryCard = ({
                       }}
                       className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
                     >
-                      <Share2 className="w-4.5 h-4.5" />
+                      <Share2 className="w-5 h-5" />
                       <span className="font-medium">Sdílet</span>
                     </button>
                   )}
@@ -388,7 +388,7 @@ export const CategoryCard = ({
                     }}
                     className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
                   >
-                    <Archive className="w-4.5 h-4.5" />
+                    <Archive className="w-5 h-5" />
                     <span className="font-medium">Archivovat</span>
                   </button>
                   <button
@@ -398,7 +398,7 @@ export const CategoryCard = ({
                     }}
                     className="w-full flex items-center space-x-3 px-4 py-3 text-left bg-white/10 backdrop-blur-sm hover:bg-red-50/50 dark:bg-slate-700/40 dark:hover:bg-red-900/20 transition-all duration-200 text-red-600 dark:text-red-400"
                   >
-                    <Trash2 className="w-4.5 h-4.5" />
+                    <Trash2 className="w-5 h-5" />
                     <span className="font-medium">Smazat</span>
                   </button>
                 </div>
@@ -520,7 +520,7 @@ export const CategoryCard = ({
                         }}
                         className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
                       >
-                        <Pin className="w-4.5 h-4.5" />
+                        <Pin className="w-5 h-5" />
                         <span className="font-medium">Připnout</span>
                       </button>
                       {canManageLinks && (
@@ -531,7 +531,7 @@ export const CategoryCard = ({
                           }}
                           className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
                         >
-                          <Share2 className="w-4.5 h-4.5" />
+                          <Share2 className="w-5 h-5" />
                           <span className="font-medium">Sdílet</span>
                         </button>
                       )}
@@ -543,7 +543,7 @@ export const CategoryCard = ({
                           }}
                           className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
                         >
-                          <Edit2 className="w-4.5 h-4.5" />
+                          <Edit2 className="w-5 h-5" />
                           <span className="font-medium">Upravit</span>
                         </button>
                       )}
@@ -563,7 +563,7 @@ export const CategoryCard = ({
                           }}
                           className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
                         >
-                          <Archive className="w-4.5 h-4.5" />
+                          <Archive className="w-5 h-5" />
                           <span className="font-medium">Archivovat</span>
                         </button>
                       )}
@@ -575,7 +575,7 @@ export const CategoryCard = ({
                           }}
                           className="w-full flex items-center space-x-3 px-4 py-3 text-left bg-white/10 backdrop-blur-sm hover:bg-red-50/50 dark:bg-slate-700/40 dark:hover:bg-red-900/20 transition-all duration-200 text-red-600 dark:text-red-400"
                         >
-                          <Trash2 className="w-4.5 h-4.5" />
+                          <Trash2 className="w-5 h-5" />
                           <span className="font-medium">Smazat</span>
                         </button>
                       )}
