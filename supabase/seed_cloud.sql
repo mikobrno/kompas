@@ -34,33 +34,33 @@ TRUNCATE public.link_tags,
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.users (id, email, full_name, role, theme, created_at) VALUES ('4d204e9d-403d-443f-b573-68947e18c47d', 'kost@adminreal.cz', 'Milan', 'admin', 'light', '2025-10-23 16:09:11.895098+00');
-INSERT INTO public.users (id, email, full_name, role, theme, created_at) VALUES ('a25b40d4-feaf-4f97-8923-9f5a3b58d33b', 'info@adminreal.cz', 'Zuzana', 'user', 'light', '2025-10-23 16:09:11.895098+00');
-INSERT INTO public.users (id, email, full_name, role, theme, created_at) VALUES ('7fe8c05d-3009-40e5-b90a-2ccf9802ac51', 'dvorak@adminreal.cz', 'David', 'user', 'light', '2025-10-23 16:09:11.895098+00');
-INSERT INTO public.users (id, email, full_name, role, theme, created_at) VALUES ('8e17fa83-a314-4e60-89e9-681598a1ea39', 'faktury@adminreal.cz', 'Iveta', 'user', 'light', '2025-10-23 16:09:11.895098+00');
+INSERT INTO public.users (id, email, full_name, role, theme, created_at) VALUES ('342c8533-be56-4ff0-be0d-6128c1b20fb0', 'kost@adminreal.cz', 'Milan', 'admin', 'light', '2025-10-23 16:09:11.895098+00');
+INSERT INTO public.users (id, email, full_name, role, theme, created_at) VALUES ('27f0d1c6-df9f-4e06-b3a5-38771087ed78', 'info@adminreal.cz', 'Zuzana', 'user', 'light', '2025-10-23 16:09:11.895098+00');
+INSERT INTO public.users (id, email, full_name, role, theme, created_at) VALUES ('de018379-22b6-4a26-ac57-1ba1180103a9', 'dvorak@adminreal.cz', 'David', 'user', 'light', '2025-10-23 16:09:11.895098+00');
+INSERT INTO public.users (id, email, full_name, role, theme, created_at) VALUES ('77fa5a39-bc3b-41b0-be1f-259dcd64da6a', 'faktury@adminreal.cz', 'Iveta', 'user', 'light', '2025-10-23 16:09:11.895098+00');
 
 
 --
 -- Data for Name: categories; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('dd7e9f0f-c195-41a1-bbc8-2a04103df765', 'Portaly', '4d204e9d-403d-443f-b573-68947e18c47d', false, 0, '2025-10-23 16:11:25.032785+00', '#f05a28');
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('8fe6dac3-849a-4450-ba90-f10afaf03658', 'AI | Aplikace | Tvorba', '4d204e9d-403d-443f-b573-68947e18c47d', false, 1, '2025-10-23 16:11:25.068978+00', '#f05a28');
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('86ff8259-2edd-4e2e-9659-3493ef4e4075', 'AR', '4d204e9d-403d-443f-b573-68947e18c47d', false, 2, '2025-10-23 16:11:25.094179+00', '#f05a28');
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('91e3bce7-40d8-415d-ae6f-3ab237c8a5c3', 'Noviny', '4d204e9d-403d-443f-b573-68947e18c47d', false, 3, '2025-10-23 16:11:25.125284+00', '#f05a28');
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('134c685c-a024-4c00-8ddb-d6e4e6ba7ac5', 'ZETEO', '4d204e9d-403d-443f-b573-68947e18c47d', false, 4, '2025-10-23 16:11:25.155501+00', '#f05a28');
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('4a47a417-b9c7-4cb3-8e16-9052566ccde0', 'Power automate', '4d204e9d-403d-443f-b573-68947e18c47d', false, 5, '2025-10-23 16:11:25.180359+00', '#f05a28');
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('5a7535db-b459-4186-94a9-04a609ce2f8a', 'FinBOB', '4d204e9d-403d-443f-b573-68947e18c47d', false, 6, '2025-10-23 16:11:25.222865+00', '#f05a28');
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('74e5446c-844e-4a67-a905-8561e0d691fe', 'Bohemika', '4d204e9d-403d-443f-b573-68947e18c47d', false, 7, '2025-10-23 16:11:25.249684+00', '#f05a28');
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('c4e38fa6-96ff-4993-9d9d-de30580a398a', 'Kalkulačky a rejsříky', '4d204e9d-403d-443f-b573-68947e18c47d', false, 8, '2025-10-23 16:11:25.276462+00', '#f05a28');
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('a87aed46-cd17-4721-9b2e-05cd68b344a4', 'Banky', '4d204e9d-403d-443f-b573-68947e18c47d', false, 9, '2025-10-23 16:11:25.306259+00', '#f05a28');
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('abd0ccba-7f08-4a34-b273-f286e310aaf3', 'Hypotéky - Golem', '4d204e9d-403d-443f-b573-68947e18c47d', false, 10, '2025-10-23 16:11:25.333565+00', '#f05a28');
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('0686f90a-e8c2-4c72-8608-6d53e5d3d460', 'POJIŠTOVNY', '4d204e9d-403d-443f-b573-68947e18c47d', false, 11, '2025-10-23 16:11:25.358951+00', '#f05a28');
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('bf817072-6a7d-424d-b63b-10267f19deb9', 'MS od Tomáše store', '4d204e9d-403d-443f-b573-68947e18c47d', false, 12, '2025-10-23 16:11:25.386998+00', '#f05a28');
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('8d53b456-0d86-47ec-b600-b6fe5968cf3e', 'Investice', '4d204e9d-403d-443f-b573-68947e18c47d', false, 13, '2025-10-23 16:11:25.409107+00', '#f05a28');
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('1536dc14-89a8-4372-bfa1-22a7ee4e797b', 'Osobní', '4d204e9d-403d-443f-b573-68947e18c47d', false, 14, '2025-10-23 16:11:25.43397+00', '#f05a28');
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('dcb761e0-e7ee-476b-9112-4f5395e66a0f', 'Podcast.Adobe.com', '4d204e9d-403d-443f-b573-68947e18c47d', false, 15, '2025-10-23 16:11:25.462471+00', '#f05a28');
-INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('9bf3eaaa-3c96-443a-9435-cceda9717d45', 'aa', 'a25b40d4-feaf-4f97-8923-9f5a3b58d33b', false, 0, '2025-10-23 20:03:24.036455+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('dd7e9f0f-c195-41a1-bbc8-2a04103df765', 'Portaly', '342c8533-be56-4ff0-be0d-6128c1b20fb0', false, 0, '2025-10-23 16:11:25.032785+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('8fe6dac3-849a-4450-ba90-f10afaf03658', 'AI | Aplikace | Tvorba', '342c8533-be56-4ff0-be0d-6128c1b20fb0', false, 1, '2025-10-23 16:11:25.068978+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('86ff8259-2edd-4e2e-9659-3493ef4e4075', 'AR', '342c8533-be56-4ff0-be0d-6128c1b20fb0', false, 2, '2025-10-23 16:11:25.094179+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('91e3bce7-40d8-415d-ae6f-3ab237c8a5c3', 'Noviny', '342c8533-be56-4ff0-be0d-6128c1b20fb0', false, 3, '2025-10-23 16:11:25.125284+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('134c685c-a024-4c00-8ddb-d6e4e6ba7ac5', 'ZETEO', '342c8533-be56-4ff0-be0d-6128c1b20fb0', false, 4, '2025-10-23 16:11:25.155501+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('4a47a417-b9c7-4cb3-8e16-9052566ccde0', 'Power automate', '342c8533-be56-4ff0-be0d-6128c1b20fb0', false, 5, '2025-10-23 16:11:25.180359+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('5a7535db-b459-4186-94a9-04a609ce2f8a', 'FinBOB', '342c8533-be56-4ff0-be0d-6128c1b20fb0', false, 6, '2025-10-23 16:11:25.222865+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('74e5446c-844e-4a67-a905-8561e0d691fe', 'Bohemika', '342c8533-be56-4ff0-be0d-6128c1b20fb0', false, 7, '2025-10-23 16:11:25.249684+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('c4e38fa6-96ff-4993-9d9d-de30580a398a', 'Kalkulačky a rejsříky', '342c8533-be56-4ff0-be0d-6128c1b20fb0', false, 8, '2025-10-23 16:11:25.276462+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('a87aed46-cd17-4721-9b2e-05cd68b344a4', 'Banky', '342c8533-be56-4ff0-be0d-6128c1b20fb0', false, 9, '2025-10-23 16:11:25.306259+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('abd0ccba-7f08-4a34-b273-f286e310aaf3', 'Hypotéky - Golem', '342c8533-be56-4ff0-be0d-6128c1b20fb0', false, 10, '2025-10-23 16:11:25.333565+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('0686f90a-e8c2-4c72-8608-6d53e5d3d460', 'POJIŠTOVNY', '342c8533-be56-4ff0-be0d-6128c1b20fb0', false, 11, '2025-10-23 16:11:25.358951+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('bf817072-6a7d-424d-b63b-10267f19deb9', 'MS od Tomáše store', '342c8533-be56-4ff0-be0d-6128c1b20fb0', false, 12, '2025-10-23 16:11:25.386998+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('8d53b456-0d86-47ec-b600-b6fe5968cf3e', 'Investice', '342c8533-be56-4ff0-be0d-6128c1b20fb0', false, 13, '2025-10-23 16:11:25.409107+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('1536dc14-89a8-4372-bfa1-22a7ee4e797b', 'Osobní', '342c8533-be56-4ff0-be0d-6128c1b20fb0', false, 14, '2025-10-23 16:11:25.43397+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('dcb761e0-e7ee-476b-9112-4f5395e66a0f', 'Podcast.Adobe.com', '342c8533-be56-4ff0-be0d-6128c1b20fb0', false, 15, '2025-10-23 16:11:25.462471+00', '#f05a28');
+INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, created_at, color_hex) VALUES ('9bf3eaaa-3c96-443a-9435-cceda9717d45', 'aa', '27f0d1c6-df9f-4e06-b3a5-38771087ed78', false, 0, '2025-10-23 20:03:24.036455+00', '#f05a28');
 
 
 --
@@ -73,7 +73,7 @@ INSERT INTO public.categories (id, name, owner_id, is_archived, display_order, c
 -- Data for Name: category_shares; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.category_shares (id, category_id, shared_with_user_id, shared_with_group_id, permission_level, created_at) VALUES ('b6d3ca55-9ada-4b07-b0a9-600333bbc148', 'dd7e9f0f-c195-41a1-bbc8-2a04103df765', 'a25b40d4-feaf-4f97-8923-9f5a3b58d33b', NULL, 'viewer', '2025-10-23 19:45:00.641367+00');
+INSERT INTO public.category_shares (id, category_id, shared_with_user_id, shared_with_group_id, permission_level, created_at) VALUES ('b6d3ca55-9ada-4b07-b0a9-600333bbc148', 'dd7e9f0f-c195-41a1-bbc8-2a04103df765', '27f0d1c6-df9f-4e06-b3a5-38771087ed78', NULL, 'viewer', '2025-10-23 19:45:00.641367+00');
 
 
 --
