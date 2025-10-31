@@ -407,10 +407,10 @@ export const Dashboard = () => {
       <main className="max-w-screen-2xl mx-auto px-3 sm:px-4 lg:px-6 py-8">
         {ownCategories.length > 0 && (
           <div className="mb-10">
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-7 tracking-tight">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4 tracking-tight">
               Moje kategorie
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-7 gap-3">
               {ownCategories.map((category: Category) => {
                 const forcedExpanded = !!searchQuery || collapseMode === 'expanded' || (collapseMode === 'collapsed' && manualExpandedCategories.includes(category.id));
                 const forcedCollapsed = collapseMode === 'collapsed' && !forcedExpanded;
@@ -447,10 +447,10 @@ export const Dashboard = () => {
 
         {sharedCategories.length > 0 && (
           <div className="mb-10">
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-7 tracking-tight">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4 tracking-tight">
               Sdíleno se mnou
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-7 gap-3">
               {sharedCategories.map((category: Category) => {
                 const forcedExpanded = !!searchQuery || collapseMode === 'expanded' || (collapseMode === 'collapsed' && manualExpandedCategories.includes(category.id));
                 const forcedCollapsed = collapseMode === 'collapsed' && !forcedExpanded;

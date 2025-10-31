@@ -300,22 +300,22 @@ export const CategoryCard = ({
       style={cardStyle}
     >
       <div
-        className="px-4 py-3 flex items-center justify-between border-b rounded-t-2xl backdrop-blur-md"
+        className="px-3 py-2 flex items-center justify-between border-b rounded-t-2xl backdrop-blur-md"
         style={headerStyle}
       >
         <button
           type="button"
           onClick={toggleCollapse}
-          className="group flex items-center gap-3 flex-1 pr-3 py-2 rounded-xl border border-transparent bg-transparent text-left transition-all duration-200 hover:border-white/50 hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/50 dark:hover:bg-slate-700/40"
+          className="group flex items-center gap-2 flex-1 pr-2 py-1.5 rounded-xl border border-transparent bg-transparent text-left transition-all duration-200 hover:border-white/50 hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/50 dark:hover:bg-slate-700/40"
           aria-label={collapsed ? 'Rozbalit kategorii' : 'Sbalit kategorii'}
         >
-          <span className="flex items-center justify-center w-7 h-7 rounded-xl border border-white/40 bg-white/30 backdrop-blur-sm shadow-sm dark:border-slate-500/50 dark:bg-slate-700/70 transition-transform duration-300 group-hover:scale-110">
+          <span className="flex items-center justify-center w-6 h-6 rounded-lg border border-white/40 bg-white/30 backdrop-blur-sm shadow-sm dark:border-slate-500/50 dark:bg-slate-700/70 transition-transform duration-300 group-hover:scale-110">
             <ChevronDown
-              className={`w-4 h-4 transition-transform duration-300 ${collapsed ? '-rotate-90' : ''}`}
+              className={`w-3.5 h-3.5 transition-transform duration-300 ${collapsed ? '-rotate-90' : ''}`}
               style={accentIconStyle}
             />
           </span>
-          <span className="font-semibold text-base text-slate-900 dark:text-white flex items-center gap-2.5 flex-1">
+          <span className="font-semibold text-sm text-slate-900 dark:text-white flex items-center gap-2 flex-1">
             <span className="whitespace-normal break-words" title={category.name}>{category.name}</span>
             {(() => {
               const isFullShared = category.isShared && (!category.sharedLinkIds || category.sharedLinkIds.length === 0);
@@ -326,12 +326,12 @@ export const CategoryCard = ({
                 : 'Obsahuje sdílené položky';
               return (
               <span
-                className="inline-flex items-center text-xs rounded-full px-2 py-1 shadow-sm"
+                className="inline-flex items-center text-xs rounded-full px-1.5 py-0.5 shadow-sm"
                 style={isFullShared ? badgeStyle : partialBadgeStyle}
                 title={label}
                 aria-label={label}
               >
-                <Users className="w-3.5 h-3.5" />
+                <Users className="w-3 h-3" />
                 <span className="sr-only">Sdílené</span>
               </span>
               );
@@ -343,10 +343,10 @@ export const CategoryCard = ({
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="p-2 rounded-xl border border-white/40 bg-white/25 backdrop-blur-sm hover:bg-white/40 dark:border-slate-500/50 dark:bg-slate-700/60 dark:hover:bg-slate-700/80 transition-all duration-200 shadow-sm hover:scale-105"
+              className="p-1.5 rounded-lg border border-white/40 bg-white/25 backdrop-blur-sm hover:bg-white/40 dark:border-slate-500/50 dark:bg-slate-700/60 dark:hover:bg-slate-700/80 transition-all duration-200 shadow-sm hover:scale-105"
               title="Možnosti"
             >
-              <MoreVertical className="w-4 h-4" style={accentIconStyle} />
+              <MoreVertical className="w-3.5 h-3.5" style={accentIconStyle} />
             </button>
 
             {showMenu && (
@@ -409,7 +409,7 @@ export const CategoryCard = ({
       </div>
 
       {!collapsed && (
-        <div className="p-5 space-y-3" onDragOver={onCategoryAreaDragOver} onDrop={onCategoryAreaDrop}>
+        <div className="p-3 space-y-2" onDragOver={onCategoryAreaDragOver} onDrop={onCategoryAreaDrop}>
           {linksLocal.filter(l => !l.is_archived).length === 0 ? (
           <p className="text-center text-slate-500 dark:text-slate-400 py-8 text-sm font-medium">
             Žádné odkazy
@@ -418,7 +418,7 @@ export const CategoryCard = ({
           linksLocal.filter(l => !l.is_archived).map((link) => (
             <div
               key={link.id}
-              className="group relative bg-white/85 dark:bg-slate-800/75 backdrop-blur-md border rounded-2xl p-3.5 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
+              className="group relative bg-white/85 dark:bg-slate-800/75 backdrop-blur-md border rounded-xl p-2.5 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
               style={linkBorderStyle}
               draggable={canEdit}
               onDragStart={(e) => onLinkDragStart(e, link.id)}
@@ -429,20 +429,20 @@ export const CategoryCard = ({
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-3.5"
+                className="flex items-center space-x-2.5"
               >
                 {(() => {
                   const host = extractHostname(link.url);
                   const primary = link.favicon_url || (host ? bestFaviconFor(link.url, 32) : null);
                   if (!primary) {
-                    return <div className="w-7 h-7 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-600 dark:to-slate-700 rounded-xl flex-shrink-0 shadow-sm" />;
+                    return <div className="w-6 h-6 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-600 dark:to-slate-700 rounded-lg flex-shrink-0 shadow-sm" />;
                   }
                   return (
-                    <div className="w-7 h-7 rounded-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center shadow-sm flex-shrink-0">
+                    <div className="w-6 h-6 rounded-lg overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center shadow-sm flex-shrink-0">
                       <img
                         src={primary}
                         alt=""
-                        className="w-6 h-6 object-contain"
+                        className="w-5 h-5 object-contain"
                         data-favicon-attempt="primary"
                         onError={(e) => {
                           const el = e.currentTarget as HTMLImageElement & { dataset: { faviconAttempt?: string } };
@@ -463,7 +463,7 @@ export const CategoryCard = ({
                 })()}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">
+                    <p className="font-semibold text-xs text-slate-900 dark:text-white truncate">
                       {link.display_name}
                     </p>
                     {link.isSharedLink && (
@@ -479,11 +479,11 @@ export const CategoryCard = ({
                     )}
                   </div>
                   {link.tags && link.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    <div className="flex flex-wrap gap-1.5 mt-1.5">
                       {link.tags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex items-center text-[11px] font-semibold px-3 py-1 rounded-full border backdrop-blur-sm shadow-sm transition-all duration-200 hover:scale-105"
+                          className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full border backdrop-blur-sm shadow-sm transition-all duration-200 hover:scale-105"
                           style={tagStyle}
                         >
                           {tag.name}
