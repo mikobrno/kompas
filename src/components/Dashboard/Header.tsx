@@ -89,23 +89,23 @@ export const Header = ({ searchQuery, onSearchChange, onOpenSettings, onOpenAdmi
                 onChange={(event) => setSearchValue(event.target.value)}
                 placeholder="Hledat v Kompasu"
                 ref={searchInputRef}
-                className="w-full rounded-2xl border border-[#f05a28]/30 bg-white/80 dark:bg-slate-800/90 backdrop-blur-md pl-11 pr-4 py-3 text-sm font-medium text-slate-900 placeholder-slate-500 shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#f05a28]/60 focus:border-[#f05a28]/60 dark:border-slate-600/40 dark:text-white dark:placeholder-slate-400"
+                className={`w-full rounded-2xl border border-[#f05a28]/30 bg-white/80 dark:bg-slate-800/90 backdrop-blur-md pl-11 ${onToggleCollapseAll ? 'pr-16' : 'pr-4'} py-3 text-sm font-medium text-slate-900 placeholder-slate-500 shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#f05a28]/60 focus:border-[#f05a28]/60 dark:border-slate-600/40 dark:text-white dark:placeholder-slate-400`}
               />
+              {onToggleCollapseAll && (
+                <button
+                  type="button"
+                  onClick={onToggleCollapseAll}
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#f05a28]/50 hover:scale-105 shadow-sm ${collapseButtonStateClass}`}
+                  title={collapseToggleTitle}
+                  aria-label={collapseToggleTitle}
+                >
+                  <ChevronsUpDown className={`w-5 h-5 transition-transform duration-300 ${collapseIconRotation}`} />
+                </button>
+              )}
             </div>
           </div>
 
           <div className="flex items-center space-x-2.5">
-            {onToggleCollapseAll && (
-              <button
-                type="button"
-                onClick={onToggleCollapseAll}
-                className={`p-2.5 rounded-2xl border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#f05a28]/50 hover:scale-105 shadow-sm ${collapseButtonStateClass}`}
-                title={collapseToggleTitle}
-                aria-label={collapseToggleTitle}
-              >
-                <ChevronsUpDown className={`w-5 h-5 transition-transform duration-300 ${collapseIconRotation}`} />
-              </button>
-            )}
             {onAddCategory && (
               <button
                 onClick={onAddCategory}

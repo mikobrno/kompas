@@ -560,11 +560,11 @@ export const CategoryCard = ({
                 {showLinkMenu === link.id && (
                   <>
                     <div
-                      className="fixed inset-0 z-40"
+                      className="fixed inset-0 z-[1500]"
                       onClick={() => setShowLinkMenu(null)}
                     />
                     <div
-                      className="absolute right-0 mt-2 w-44 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border overflow-hidden z-50"
+                      className="absolute right-0 mt-2 w-44 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border overflow-hidden z-[1510]"
                       style={subtleBorderStyle}
                     >
                       <button
