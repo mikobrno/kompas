@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DragEvent } from 'react';
 import { MoreVertical, Edit2, Trash2, Share2, Archive, Pin, Users, ChevronDown, Plus } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { bestFaviconFor, extractHostname, iconHorseFavicon } from '../../lib/favicons';
+import { extractHostname, iconHorseFavicon } from '../../lib/favicons';
 import { useAuth } from '../../contexts/AuthContext';
 import { normalizeHexColor, hexToRgba } from '../../lib/colors';
 import { createPortal } from 'react-dom';
