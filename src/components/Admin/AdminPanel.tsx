@@ -887,83 +887,87 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                 </form>
               )}
 
-              {groups.map(group => (
-                <div
-                  key={group.id}
-                  className="flex items-center justify-between p-4 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50"
-                >
-                  <div className="flex items-center space-x-3">
-                    <Users className="w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]" />
-                    <p className="font-medium text-slate-900 dark:text-white">
-                      {group.name}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={async () => {
-                        const newExpanded = expandedGroupId === group.id ? null : group.id;
-                        setExpandedGroupId(newExpanded);
-                        if (newExpanded) await loadGroupMembers(group.id);
-                      }}
-                      className="px-3 py-1 rounded-xl border border-[#f05a28]/25 bg-white/60 dark:bg-slate-900/40 text-slate-700 dark:text-slate-200 text-sm hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
-                    >
-                      Členové
-                    </button>
-                    <button
-                      onClick={() => handleDeleteGroup(group.id)}
-                      className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition text-red-600 dark:text-red-400"
-                      title="Smazat skupinu"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              {expandedGroupId && (
-                <div className="p-4 rounded-xl bg-white/85 dark:bg-slate-900/60 border border-[#f05a28]/20">
-                  <h4 className="font-medium text-slate-900 dark:text-white mb-3">Správa členů</h4>
-                  <div className="space-y-2 mb-4">
-                    {(groupMembers[expandedGroupId] || []).map((uid) => {
-                      const u = users.find(us => us.id === uid);
-                      if (!u) return null;
-                      return (
-                        <div key={uid} className="flex items-center justify-between p-2 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50">
-                          <span className="text-sm text-slate-800 dark:text-slate-200">{u.full_name} ({u.email})</span>
-                          <button
-                            onClick={() => handleRemoveMember(expandedGroupId, uid)}
-                            className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
-                            title="Odebrat člena"
+              {groups.map(group => {
+                const isExpanded = expandedGroupId === group.id;
+                return (
+                  <div
+                    key={group.id}
+                    className="flex flex-col p-4 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <Users className="w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]" />
+                        <p className="font-medium text-slate-900 dark:text-white">
+                          {group.name}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={async () => {
+                            const newExpanded = expandedGroupId === group.id ? null : group.id;
+                            setExpandedGroupId(newExpanded);
+                            if (newExpanded) await loadGroupMembers(group.id);
+                          }}
+                          className="px-3 py-1 rounded-xl border border-[#f05a28]/25 bg-white/60 dark:bg-slate-900/40 text-slate-700 dark:text-slate-200 text-sm hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
+                        >
+                          {isExpanded ? 'Zavřít' : 'Členové'}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteGroup(group.id)}
+                          className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition text-red-600 dark:text-red-400"
+                          title="Smazat skupinu"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    {isExpanded && (
+                      <div className="mt-4 pt-4 border-t border-[#f05a28]/20">
+                        <h4 className="font-medium text-slate-900 dark:text-white mb-3">Správa členů</h4>
+                        <div className="space-y-2 mb-4">
+                          {(groupMembers[expandedGroupId] || []).map((uid) => {
+                            const u = users.find(us => us.id === uid);
+                            if (!u) return null;
+                            return (
+                              <div key={uid} className="flex items-center justify-between p-2 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50">
+                                <span className="text-sm text-slate-800 dark:text-slate-200">{u.full_name} ({u.email})</span>
+                                <button
+                                  onClick={() => handleRemoveMember(expandedGroupId, uid)}
+                                  className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
+                                  title="Odebrat člena"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={addingMemberUserId}
+                            onChange={(e) => setAddingMemberUserId(e.target.value)}
+                            className="flex-1 px-3 py-2 rounded-xl border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/50"
+                            aria-label="Vyberte uživatele pro přidání do skupiny"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <option value="">Vyberte uživatele</option>
+                            {users
+                              .filter(u => !(groupMembers[expandedGroupId] || []).includes(u.id))
+                              .map(u => (
+                                <option key={u.id} value={u.id}>{u.full_name} ({u.email})</option>
+                              ))}
+                          </select>
+                          <button
+                            onClick={() => handleAddMember(expandedGroupId)}
+                            className="px-3 py-2 rounded-xl bg-[#f05a28] hover:bg-[#ff7846] text-white text-sm shadow transition"
+                          >
+                            Přidat
                           </button>
                         </div>
-                      );
-                    })}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={addingMemberUserId}
-                      onChange={(e) => setAddingMemberUserId(e.target.value)}
-                      className="flex-1 px-3 py-2 rounded-xl border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/50"
-                      aria-label="Vyberte uživatele pro přidání do skupiny"
-                    >
-                      <option value="">Vyberte uživatele</option>
-                      {users
-                        .filter(u => !(groupMembers[expandedGroupId] || []).includes(u.id))
-                        .map(u => (
-                          <option key={u.id} value={u.id}>{u.full_name} ({u.email})</option>
-                        ))}
-                    </select>
-                    <button
-                      onClick={() => handleAddMember(expandedGroupId)}
-                      className="px-3 py-2 rounded-xl bg-[#f05a28] hover:bg-[#ff7846] text-white text-sm shadow transition"
-                    >
-                      Přidat
-                    </button>
-                  </div>
-                </div>
-              )}
+                );
+              })}
             </div>
           )}
 
