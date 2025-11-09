@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DragEvent } from 'react';
 import { MoreVertical, Edit2, Trash2, Share2, Archive, Pin, Users, ChevronDown, Plus } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { bestFaviconFor, extractHostname, iconHorseFavicon } from '../../lib/favicons';
 import { useAuth } from '../../contexts/AuthContext';
 import { normalizeHexColor, hexToRgba } from '../../lib/colors';
+import { createPortal } from 'react-dom';
 
 interface Link {
   id: string;
@@ -68,6 +69,8 @@ export const CategoryCard = ({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const collapsed = forceExpanded ? false : forceCollapsed ? true : isCollapsed;
 
+    const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+    const [menuCoords, setMenuCoords] = useState<{ top: number; right: number } | null>(null);
   const accent = useMemo(() => normalizeHexColor(category.color_hex), [category.color_hex]);
   const cardStyle = useMemo(() => ({
     borderColor: hexToRgba(accent, 0.3),
@@ -94,6 +97,21 @@ export const CategoryCard = ({
   }), [accent]);
   const linkBorderStyle = useMemo(() => ({ borderColor: hexToRgba(accent, 0.4) }), [accent]);
   const subtleBorderStyle = useMemo(() => ({ borderColor: hexToRgba(accent, 0.35) }), [accent]);
+  const menuWidth = 208; // Tailwind w-52
+
+  const closeCategoryMenu = useCallback(() => {
+    setShowMenu(false);
+  }, []);
+
+  const updateMenuCoords = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    if (!menuButtonRef.current) return;
+    const rect = menuButtonRef.current.getBoundingClientRect();
+    setMenuCoords({
+      top: rect.bottom + window.scrollY,
+      right: rect.right + window.scrollX,
+    });
+  }, []);
 
   // Synchronizace s props při změně kategorie/odkazů
   useEffect(() => {
@@ -112,6 +130,32 @@ export const CategoryCard = ({
   const canManageCategory = isOwner || category.permission === 'editor' || isAdmin;
   const canManageLinks = canManageCategory;
   const categoryPermLabel = category.permission === 'editor' ? 'Editor' : category.permission === 'viewer' ? 'Čtenář' : undefined;
+
+  useEffect(() => {
+    if (!showMenu) return;
+    updateMenuCoords();
+
+    const handleWindowChange = () => updateMenuCoords();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeCategoryMenu();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleWindowChange);
+      window.addEventListener('scroll', handleWindowChange, true);
+      window.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', handleWindowChange);
+        window.removeEventListener('scroll', handleWindowChange, true);
+        window.removeEventListener('keydown', handleKeyDown);
+      }
+    };
+  }, [showMenu, updateMenuCoords, closeCategoryMenu]);
 
   const pinLink = async (linkId: string) => {
     if (!user) return;
@@ -294,11 +338,72 @@ export const CategoryCard = ({
     onRefresh();
   };
 
+  const categoryMenuPortal = showMenu && menuCoords && typeof document !== 'undefined'
+    ? createPortal(
+        <>
+          <div className="fixed inset-0 z-[1500]" onClick={closeCategoryMenu} />
+          <div
+            className="fixed z-[1510] w-52 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border overflow-hidden"
+            style={{
+              ...subtleBorderStyle,
+              top: menuCoords.top + 8,
+              left: Math.max(16, menuCoords.right - menuWidth),
+            }}
+          >
+            <button
+              onClick={() => {
+                closeCategoryMenu();
+                onEdit(category);
+              }}
+              className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
+            >
+              <Edit2 className="w-5 h-5" />
+              <span className="font-medium">Přejmenovat</span>
+            </button>
+            {isOwner && (
+              <button
+                onClick={() => {
+                  closeCategoryMenu();
+                  onShare(category);
+                }}
+                className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
+              >
+                <Share2 className="w-5 h-5" />
+                <span className="font-medium">Sdílet</span>
+              </button>
+            )}
+            <button
+              onClick={() => {
+                closeCategoryMenu();
+                onArchive(category.id);
+              }}
+              className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
+            >
+              <Archive className="w-5 h-5" />
+              <span className="font-medium">Archivovat</span>
+            </button>
+            <button
+              onClick={() => {
+                closeCategoryMenu();
+                onDelete(category.id);
+              }}
+              className="w-full flex items-center space-x-3 px-4 py-3 text-left bg-white/10 backdrop-blur-sm hover:bg-red-50/50 dark:bg-slate-700/40 dark:hover:bg-red-900/20 transition-all duration-200 text-red-600 dark:text-red-400"
+            >
+              <Trash2 className="w-5 h-5" />
+              <span className="font-medium">Smazat</span>
+            </button>
+          </div>
+        </>,
+        document.body
+      )
+    : null;
+
   return (
-    <div
-      className={`bg-white/90 dark:bg-slate-800/85 backdrop-blur-xl rounded-2xl shadow-md border transition-all duration-300 hover:shadow-xl ${showMenu || showLinkMenu ? 'relative z-50' : ''}`}
-      style={cardStyle}
-    >
+    <>
+      <div
+        className={`bg-white/90 dark:bg-slate-800/85 backdrop-blur-xl rounded-2xl shadow-md border transition-all duration-300 hover:shadow-xl ${showMenu || showLinkMenu ? 'relative z-50' : ''}`}
+        style={cardStyle}
+      >
       <div
         className="px-2 py-1.5 flex items-center justify-between border-b rounded-t-2xl backdrop-blur-md"
         style={headerStyle}
@@ -340,71 +445,20 @@ export const CategoryCard = ({
         </button>
 
         {canManageCategory && (
-          <div className="relative">
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="p-1 rounded-lg border border-white/40 bg-white/25 backdrop-blur-sm hover:bg-white/40 dark:border-slate-500/50 dark:bg-slate-700/60 dark:hover:bg-slate-700/80 transition-all duration-200 shadow-sm hover:scale-105"
-              title="Možnosti"
-            >
-              <MoreVertical className="w-3 h-3" style={accentIconStyle} />
-            </button>
-
-            {showMenu && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setShowMenu(false)}
-                />
-                <div
-                  className="absolute right-0 mt-2 w-52 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border overflow-hidden z-50"
-                  style={subtleBorderStyle}
-                >
-                  <button
-                    onClick={() => {
-                      setShowMenu(false);
-                      onEdit(category);
-                    }}
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
-                  >
-                    <Edit2 className="w-5 h-5" />
-                    <span className="font-medium">Přejmenovat</span>
-                  </button>
-                  {isOwner && (
-                    <button
-                      onClick={() => {
-                        setShowMenu(false);
-                        onShare(category);
-                      }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
-                    >
-                      <Share2 className="w-5 h-5" />
-                      <span className="font-medium">Sdílet</span>
-                    </button>
-                  )}
-                  <button
-                    onClick={() => {
-                      setShowMenu(false);
-                      onArchive(category.id);
-                    }}
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-left border-b border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/25 dark:border-slate-500/30 dark:bg-slate-700/40 dark:hover:bg-slate-700/60 transition-all duration-200 text-slate-700 dark:text-slate-200"
-                  >
-                    <Archive className="w-5 h-5" />
-                    <span className="font-medium">Archivovat</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowMenu(false);
-                      onDelete(category.id);
-                    }}
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-left bg-white/10 backdrop-blur-sm hover:bg-red-50/50 dark:bg-slate-700/40 dark:hover:bg-red-900/20 transition-all duration-200 text-red-600 dark:text-red-400"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                    <span className="font-medium">Smazat</span>
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          <button
+            ref={menuButtonRef}
+            onClick={() => {
+              const next = !showMenu;
+              setShowMenu(next);
+              if (next) {
+                updateMenuCoords();
+              }
+            }}
+            className="p-1 rounded-lg border border-white/40 bg-white/25 backdrop-blur-sm hover:bg-white/40 dark:border-slate-500/50 dark:bg-slate-700/60 dark:hover:bg-slate-700/80 transition-all duration-200 shadow-sm hover:scale-105"
+            title="Možnosti"
+          >
+            <MoreVertical className="w-3 h-3" style={accentIconStyle} />
+          </button>
         )}
       </div>
 
@@ -653,6 +707,8 @@ export const CategoryCard = ({
         )}
         </div>
       )}
-    </div>
+      </div>
+      {categoryMenuPortal}
+    </>
   );
 };

@@ -27,6 +27,8 @@ export const ShareCategoryModal = ({ isOpen, categoryId, onClose }: ShareCategor
   const [groups, setGroups] = useState<GroupOption[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
+  const [initialSelectedUsers, setInitialSelectedUsers] = useState<Set<string>>(new Set());
+  const [initialSelectedGroups, setInitialSelectedGroups] = useState<Set<string>>(new Set());
   const [permissions, setPermissions] = useState<Map<string, 'viewer' | 'editor'>>(new Map());
   const [userSearch, setUserSearch] = useState('');
   const [groupSearch, setGroupSearch] = useState('');
@@ -67,6 +69,8 @@ export const ShareCategoryModal = ({ isOpen, categoryId, onClose }: ShareCategor
     setSelectedUsers(newSelectedUsers);
     setSelectedGroups(newSelectedGroups);
     setPermissions(newPermissions);
+    setInitialSelectedUsers(new Set(newSelectedUsers));
+    setInitialSelectedGroups(new Set(newSelectedGroups));
   }, [categoryId, user?.id]);
 
   useEffect(() => {
@@ -114,38 +118,185 @@ export const ShareCategoryModal = ({ isOpen, categoryId, onClose }: ShareCategor
   };
 
   const handleSave = async () => {
-    await supabase
-      .from('category_shares')
-      .delete()
-      .eq('category_id', categoryId);
-
-    const sharesToInsert = [];
-
-    for (const userId of selectedUsers) {
-      sharesToInsert.push({
-        category_id: categoryId,
-        shared_with_user_id: userId,
-        shared_with_group_id: null,
-        permission_level: permissions.get(`user-${userId}`) || 'viewer',
-      });
-    }
-
-    for (const groupId of selectedGroups) {
-      sharesToInsert.push({
-        category_id: categoryId,
-        shared_with_user_id: null,
-        shared_with_group_id: groupId,
-        permission_level: permissions.get(`group-${groupId}`) || 'viewer',
-      });
-    }
-
-    if (sharesToInsert.length > 0) {
+    try {
       await supabase
         .from('category_shares')
-        .insert(sharesToInsert);
-    }
+        .delete()
+        .eq('category_id', categoryId);
 
-    onClose();
+      const sharesToInsert: {
+        category_id: string;
+        shared_with_user_id: string | null;
+        shared_with_group_id: string | null;
+        permission_level: 'viewer' | 'editor';
+      }[] = [];
+
+      selectedUsers.forEach((userId) => {
+        sharesToInsert.push({
+          category_id: categoryId,
+          shared_with_user_id: userId,
+          shared_with_group_id: null,
+          permission_level: permissions.get(`user-${userId}`) || 'viewer',
+        });
+      });
+
+      selectedGroups.forEach((groupId) => {
+        sharesToInsert.push({
+          category_id: categoryId,
+          shared_with_user_id: null,
+          shared_with_group_id: groupId,
+          permission_level: permissions.get(`group-${groupId}`) || 'viewer',
+        });
+      });
+
+      if (sharesToInsert.length > 0) {
+        await supabase.from('category_shares').insert(sharesToInsert);
+      }
+
+      const { data: linksData, error: linksError } = await supabase
+        .from('links')
+        .select('id')
+        .eq('category_id', categoryId);
+
+      if (linksError) {
+        throw linksError;
+      }
+
+      const linkIds = (linksData || []).map((link) => link.id);
+
+      if (linkIds.length > 0) {
+        const relevantUserIds = new Set<string>([
+          ...initialSelectedUsers,
+          ...selectedUsers,
+        ]);
+        const relevantGroupIds = new Set<string>([
+          ...initialSelectedGroups,
+          ...selectedGroups,
+        ]);
+
+        const { data: existingShares, error: existingError } = await supabase
+          .from('link_shares')
+          .select('id, link_id, shared_with_user_id, shared_with_group_id, permission_level')
+          .in('link_id', linkIds);
+
+        if (existingError) {
+          throw existingError;
+        }
+
+        const existingMap = new Map<
+          string,
+          {
+            id: string;
+            link_id: string;
+            shared_with_user_id: string | null;
+            shared_with_group_id: string | null;
+            permission_level: 'viewer' | 'editor';
+          }
+        >();
+
+        (existingShares || []).forEach((share) => {
+          const key = share.shared_with_user_id
+            ? `user-${share.shared_with_user_id}`
+            : share.shared_with_group_id
+            ? `group-${share.shared_with_group_id}`
+            : null;
+          if (!key) return;
+          existingMap.set(`${share.link_id}|${key}`, share);
+        });
+
+        const desiredEntries: Array<{
+          key: string;
+          permission: 'viewer' | 'editor';
+          kind: 'user' | 'group';
+          id: string;
+        }> = [];
+
+        selectedUsers.forEach((userId) => {
+          desiredEntries.push({
+            key: `user-${userId}`,
+            permission: permissions.get(`user-${userId}`) || 'viewer',
+            kind: 'user',
+            id: userId,
+          });
+        });
+
+        selectedGroups.forEach((groupId) => {
+          desiredEntries.push({
+            key: `group-${groupId}`,
+            permission: permissions.get(`group-${groupId}`) || 'viewer',
+            kind: 'group',
+            id: groupId,
+          });
+        });
+
+        const linkShareInserts: {
+          link_id: string;
+          shared_with_user_id: string | null;
+          shared_with_group_id: string | null;
+          permission_level: 'viewer' | 'editor';
+        }[] = [];
+        const linkShareUpdates: {
+          id: string;
+          permission_level: 'viewer' | 'editor';
+        }[] = [];
+
+        linkIds.forEach((linkId) => {
+          desiredEntries.forEach((entry) => {
+            const mapKey = `${linkId}|${entry.key}`;
+            const existing = existingMap.get(mapKey);
+            if (!existing) {
+              linkShareInserts.push({
+                link_id: linkId,
+                shared_with_user_id: entry.kind === 'user' ? entry.id : null,
+                shared_with_group_id: entry.kind === 'group' ? entry.id : null,
+                permission_level: entry.permission,
+              });
+            } else {
+              if (existing.permission_level !== entry.permission) {
+                linkShareUpdates.push({
+                  id: existing.id,
+                  permission_level: entry.permission,
+                });
+              }
+              existingMap.delete(mapKey);
+            }
+          });
+        });
+
+        const linkShareDeletes: string[] = [];
+        existingMap.forEach((share) => {
+          if (
+            (share.shared_with_user_id && relevantUserIds.has(share.shared_with_user_id)) ||
+            (share.shared_with_group_id && relevantGroupIds.has(share.shared_with_group_id))
+          ) {
+            linkShareDeletes.push(share.id);
+          }
+        });
+
+        if (linkShareDeletes.length > 0) {
+          await supabase.from('link_shares').delete().in('id', linkShareDeletes);
+        }
+
+        if (linkShareUpdates.length > 0) {
+          await Promise.all(
+            linkShareUpdates.map((update) =>
+              supabase
+                .from('link_shares')
+                .update({ permission_level: update.permission_level })
+                .eq('id', update.id)
+            )
+          );
+        }
+
+        if (linkShareInserts.length > 0) {
+          await supabase.from('link_shares').insert(linkShareInserts);
+        }
+      }
+
+      onClose();
+    } catch (err) {
+      console.error('Chyba při ukládání sdílení kategorie:', err);
+    }
   };
 
   if (!isOpen) return null;
