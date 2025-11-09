@@ -487,7 +487,10 @@ export const CategoryCard = ({
               >
                 {(() => {
                   const host = extractHostname(link.url);
-                  const primary = link.favicon_url || (host ? bestFaviconFor(link.url, 32) : null);
+                  // Prioritize icon.horse for reliability, use DB favicon as a fallback.
+                  const primary = host ? iconHorseFavicon(host) : link.favicon_url;
+                  const fallback = link.favicon_url && primary !== link.favicon_url ? link.favicon_url : null;
+
                   if (!primary) {
                     return <div className="w-6 h-6 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-600 dark:to-slate-700 rounded-lg flex-shrink-0 shadow-sm" />;
                   }
@@ -500,14 +503,12 @@ export const CategoryCard = ({
                         data-favicon-attempt="primary"
                         onError={(e) => {
                           const el = e.currentTarget as HTMLImageElement & { dataset: { faviconAttempt?: string } };
-                          if (!host) {
-                            el.style.display = 'none';
-                            return;
-                          }
-                          if (el.dataset.faviconAttempt === 'primary') {
+                          // If icon.horse fails, try the fallback from DB if it exists and is different.
+                          if (el.dataset.faviconAttempt === 'primary' && fallback) {
                             el.dataset.faviconAttempt = 'secondary';
-                            el.src = iconHorseFavicon(host);
+                            el.src = fallback;
                           } else {
+                            // If no fallback or fallback also fails, hide the image.
                             el.style.display = 'none';
                           }
                         }}
