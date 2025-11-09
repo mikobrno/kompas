@@ -472,7 +472,7 @@ export const CategoryCard = ({
           linksLocal.filter(l => !l.is_archived).map((link) => (
             <div
               key={link.id}
-              className="group relative bg-white/85 dark:bg-slate-800/75 backdrop-blur-md border rounded-lg p-2 transition-all duration-300 hover:shadow-md hover:scale-[1.01]"
+              className={`group relative bg-white/85 dark:bg-slate-800/75 backdrop-blur-md border rounded-lg p-2 transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${showLinkMenu === link.id ? 'z-10' : ''}`}
               style={linkBorderStyle}
               draggable={canEdit}
               onDragStart={(e) => onLinkDragStart(e, link.id)}
