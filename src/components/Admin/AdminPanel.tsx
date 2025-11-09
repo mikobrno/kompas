@@ -60,6 +60,10 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
   const [clearBeforeImport, setClearBeforeImport] = useState(false);
   const [importStats, setImportStats] = useState<{ categories: number; links: number } | null>(null);
   const [shareTag, setShareTag] = useState<{ id: string; name: string } | null>(null);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{ full_name: string; email: string }>({ full_name: '', email: '' });
+  const [savingUserId, setSavingUserId] = useState<string | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
   // Odstraněny akce pro seed uživatelů
   // Demo akce odstraněny – panel pracuje jen s reálnými daty
 
@@ -114,6 +118,54 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
 
   const adminUsers = useMemo(() => users.filter(user => user.role === 'admin'), [users]);
   const regularUsers = useMemo(() => users.filter(user => user.role === 'user'), [users]);
+
+  const startUserEdit = (user: User) => {
+    setEditingUserId(user.id);
+    setEditForm({ full_name: user.full_name ?? '', email: user.email ?? '' });
+    setEditError(null);
+  };
+
+  const cancelUserEdit = () => {
+    setEditingUserId(null);
+    setEditForm({ full_name: '', email: '' });
+    setSavingUserId(null);
+    setEditError(null);
+  };
+
+  const handleSaveUser = async () => {
+    if (!editingUserId) return;
+    const trimmedName = editForm.full_name.trim();
+    const trimmedEmail = editForm.email.trim().toLowerCase();
+
+    if (!trimmedName) {
+      setEditError('Zadejte prosím jméno.');
+      return;
+    }
+
+    if (!trimmedEmail || !trimmedEmail.includes('@')) {
+      setEditError('Zadejte prosím platný e-mail.');
+      return;
+    }
+
+    setSavingUserId(editingUserId);
+    setEditError(null);
+
+    const { error } = await supabase.rpc('admin_update_user', {
+      p_user_id: editingUserId,
+      p_email: trimmedEmail,
+      p_full_name: trimmedName,
+    });
+
+    if (error) {
+      // Chybu zobrazíme uživateli, aby hned věděl, co se stalo.
+      setEditError(error.message || 'Uložení se nezdařilo. Zkuste to prosím znovu.');
+      setSavingUserId(null);
+      return;
+    }
+
+    await loadData();
+    cancelUserEdit();
+  };
 
   const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -546,43 +598,104 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
             <div className="space-y-4">
               {/* Hint odstraněn – žádné seedování uživatelů z UI */}
               {/* Demo sdílení odstraněno */}
-              {users.map(user => (
-                <div
-                  key={user.id}
-                  className="flex items-center justify-between p-4 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50 shadow-sm"
-                >
-                  <div>
-                    <p className="font-medium text-slate-900 dark:text-white">
-                      {user.full_name}
-                    </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                      {user.email}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={() => {
-                        localStorage.setItem('impersonateUserId', user.id);
-                        window.location.reload();
-                      }}
-                      className="px-3 py-1 rounded text-sm font-medium border border-[#f05a28]/25 text-[#f05a28] dark:text-[#ff8b5c] hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
-                      title="Náhled jako tento uživatel"
-                    >
-                      Náhled
-                    </button>
-                    <button
-                      onClick={() => handleToggleRole(user.id, user.role)}
-                      className={`px-3 py-1 rounded text-sm font-medium transition ${
-                        user.role === 'admin'
-                          ? 'border border-[#f05a28]/30 bg-[#f05a28]/15 dark:bg-[#f05a28]/20 text-[#f05a28] dark:text-[#ff8b5c]'
-                          : 'border border-[#f05a28]/20 text-slate-700 dark:text-slate-200 hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20'
-                      }`}
-                    >
-                      {user.role === 'admin' ? 'Admin' : 'Uživatel'}
-                    </button>
-                  </div>
+              {editError && (
+                <div className="p-3 rounded-xl border border-red-300 bg-red-50 text-sm text-red-600 dark:border-red-500/60 dark:bg-red-900/20 dark:text-red-300">
+                  {editError}
                 </div>
-              ))}
+              )}
+
+              {users.map(user => {
+                const isEditing = editingUserId === user.id;
+                return (
+                  <div
+                    key={user.id}
+                    className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 p-4 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50 shadow-sm"
+                  >
+                    <div className="flex-1 space-y-2">
+                      {isEditing ? (
+                        <>
+                          <input
+                            value={editForm.full_name}
+                            onChange={(event) => setEditForm((prev) => ({ ...prev, full_name: event.target.value }))}
+                            className="w-full px-3 py-2 rounded-lg border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/40"
+                            placeholder="Celé jméno"
+                            aria-label="Celé jméno uživatele"
+                          />
+                          <input
+                            value={editForm.email}
+                            onChange={(event) => setEditForm((prev) => ({ ...prev, email: event.target.value }))}
+                            className="w-full px-3 py-2 rounded-lg border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/40"
+                            placeholder="E-mail"
+                            aria-label="E-mail uživatele"
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-medium text-slate-900 dark:text-white">
+                            {user.full_name}
+                          </p>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">
+                            {user.email}
+                          </p>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 md:gap-3">
+                      {isEditing ? (
+                        <>
+                          <button
+                            onClick={handleSaveUser}
+                            disabled={savingUserId === user.id}
+                            className={`px-3 py-1.5 rounded text-sm font-medium transition ${
+                              savingUserId === user.id
+                                ? 'bg-white/60 border border-[#f05a28]/20 text-slate-400 cursor-not-allowed'
+                                : 'bg-[#f05a28] hover:bg-[#ff7846] text-white shadow'
+                            }`}
+                          >
+                            Uložit
+                          </button>
+                          <button
+                            onClick={cancelUserEdit}
+                            className="px-3 py-1.5 rounded text-sm font-medium border border-[#f05a28]/25 text-[#f05a28] dark:text-[#ff8b5c] hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
+                          >
+                            Zrušit
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => {
+                              localStorage.setItem('impersonateUserId', user.id);
+                              window.location.reload();
+                            }}
+                            className="px-3 py-1 rounded text-sm font-medium border border-[#f05a28]/25 text-[#f05a28] dark:text-[#ff8b5c] hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
+                            title="Náhled jako tento uživatel"
+                          >
+                            Náhled
+                          </button>
+                          <button
+                            onClick={() => startUserEdit(user)}
+                            className="px-3 py-1 rounded text-sm font-medium border border-[#f05a28]/25 text-slate-700 dark:text-slate-200 hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
+                          >
+                            Upravit
+                          </button>
+                          <button
+                            onClick={() => handleToggleRole(user.id, user.role)}
+                            className={`px-3 py-1 rounded text-sm font-medium transition ${
+                              user.role === 'admin'
+                                ? 'border border-[#f05a28]/30 bg-[#f05a28]/15 dark:bg-[#f05a28]/20 text-[#f05a28] dark:text-[#ff8b5c]'
+                                : 'border border-[#f05a28]/20 text-slate-700 dark:text-slate-200 hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20'
+                            }`}
+                          >
+                            {user.role === 'admin' ? 'Admin' : 'Uživatel'}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
