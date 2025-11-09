@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
-import { X, Users, Trash2, Undo2, Save, Link as LinkIcon, Merge, Shield, Download, Upload, Share2 } from 'lucide-react';
+import { X, Users, Trash2, Undo2, Save, Link as LinkIcon, Merge, Shield, Download, Upload, Share2, PenSquare } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { DEFAULT_CATEGORY_COLOR } from '../../lib/colors';
@@ -692,9 +692,11 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                           </button>
                           <button
                             onClick={() => startUserEdit(user)}
-                            className="px-3 py-1 rounded text-sm font-medium border border-[#f05a28]/25 text-slate-700 dark:text-slate-200 hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
+                            className="px-3 py-1 rounded text-sm font-medium border border-[#f05a28]/25 text-slate-700 dark:text-slate-200 hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition flex items-center gap-1"
+                            title="Upravit jméno nebo resetovat heslo"
                           >
-                            Upravit
+                            <PenSquare className="w-4 h-4" aria-hidden="true" />
+                            <span>Upravit</span>
                           </button>
                           <button
                             onClick={() => handleToggleRole(user.id, user.role)}
