@@ -5,7 +5,8 @@
 CREATE OR REPLACE FUNCTION admin_update_user(
   p_user_id uuid,
   p_email text DEFAULT NULL,
-  p_full_name text DEFAULT NULL
+  p_full_name text DEFAULT NULL,
+  p_password text DEFAULT NULL
 )
 RETURNS void
 LANGUAGE plpgsql
@@ -15,6 +16,7 @@ DECLARE
   caller_role text;
   existing_user auth.users%ROWTYPE;
   normalized_email text;
+  normalized_password text;
 BEGIN
   IF p_user_id IS NULL THEN
     RAISE EXCEPTION 'missing_user_id';
@@ -58,8 +60,20 @@ BEGIN
     SET full_name = trim(p_full_name)
     WHERE id = p_user_id;
   END IF;
+
+  IF p_password IS NOT NULL THEN
+    normalized_password := trim(p_password);
+    IF length(normalized_password) < 8 THEN
+      RAISE EXCEPTION 'password_too_short';
+    END IF;
+
+    UPDATE auth.users
+    SET encrypted_password = crypt(normalized_password, gen_salt('bf')),
+        email_confirmed_at = COALESCE(email_confirmed_at, now())
+    WHERE id = p_user_id;
+  END IF;
 END;
 $$;
 
-REVOKE ALL ON FUNCTION admin_update_user(uuid, text, text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION admin_update_user(uuid, text, text) TO authenticated;
+REVOKE ALL ON FUNCTION admin_update_user(uuid, text, text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION admin_update_user(uuid, text, text, text) TO authenticated;

@@ -61,7 +61,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
   const [importStats, setImportStats] = useState<{ categories: number; links: number } | null>(null);
   const [shareTag, setShareTag] = useState<{ id: string; name: string } | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<{ full_name: string; email: string }>({ full_name: '', email: '' });
+  const [editForm, setEditForm] = useState<{ full_name: string; email: string; password: string }>({ full_name: '', email: '', password: '' });
   const [savingUserId, setSavingUserId] = useState<string | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
   // Odstraněny akce pro seed uživatelů
@@ -121,13 +121,13 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
 
   const startUserEdit = (user: User) => {
     setEditingUserId(user.id);
-    setEditForm({ full_name: user.full_name ?? '', email: user.email ?? '' });
+    setEditForm({ full_name: user.full_name ?? '', email: user.email ?? '', password: '' });
     setEditError(null);
   };
 
   const cancelUserEdit = () => {
     setEditingUserId(null);
-    setEditForm({ full_name: '', email: '' });
+    setEditForm({ full_name: '', email: '', password: '' });
     setSavingUserId(null);
     setEditError(null);
   };
@@ -136,6 +136,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
     if (!editingUserId) return;
     const trimmedName = editForm.full_name.trim();
     const trimmedEmail = editForm.email.trim().toLowerCase();
+    const trimmedPassword = editForm.password.trim();
 
     if (!trimmedName) {
       setEditError('Zadejte prosím jméno.');
@@ -147,6 +148,11 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
       return;
     }
 
+    if (trimmedPassword && trimmedPassword.length < 8) {
+      setEditError('Heslo musí mít alespoň 8 znaků.');
+      return;
+    }
+
     setSavingUserId(editingUserId);
     setEditError(null);
 
@@ -154,6 +160,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
       p_user_id: editingUserId,
       p_email: trimmedEmail,
       p_full_name: trimmedName,
+      p_password: trimmedPassword ? trimmedPassword : null,
     });
 
     if (error) {
@@ -627,6 +634,15 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                             className="w-full px-3 py-2 rounded-lg border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/40"
                             placeholder="E-mail"
                             aria-label="E-mail uživatele"
+                          />
+                          <input
+                            value={editForm.password}
+                            onChange={(event) => setEditForm((prev) => ({ ...prev, password: event.target.value }))}
+                            className="w-full px-3 py-2 rounded-lg border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/40"
+                            placeholder="Nové heslo (nepovinné)"
+                            aria-label="Nové heslo"
+                            type="password"
+                            autoComplete="new-password"
                           />
                         </>
                       ) : (
