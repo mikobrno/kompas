@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
-import { X, Users, Trash2, Undo2, Save, Link as LinkIcon, Merge, Shield, Download, Upload, Share2 } from 'lucide-react';
+import { X, Users, Trash2, Undo2, Save, Link as LinkIcon, Merge, Shield, Download, Upload, Share2, PenSquare } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { DEFAULT_CATEGORY_COLOR } from '../../lib/colors';
@@ -60,6 +60,10 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
   const [clearBeforeImport, setClearBeforeImport] = useState(false);
   const [importStats, setImportStats] = useState<{ categories: number; links: number } | null>(null);
   const [shareTag, setShareTag] = useState<{ id: string; name: string } | null>(null);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{ full_name: string; email: string; password: string }>({ full_name: '', email: '', password: '' });
+  const [savingUserId, setSavingUserId] = useState<string | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
   // Odstraněny akce pro seed uživatelů
   // Demo akce odstraněny – panel pracuje jen s reálnými daty
 
@@ -114,6 +118,61 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
 
   const adminUsers = useMemo(() => users.filter(user => user.role === 'admin'), [users]);
   const regularUsers = useMemo(() => users.filter(user => user.role === 'user'), [users]);
+
+  const startUserEdit = (user: User) => {
+    setEditingUserId(user.id);
+    setEditForm({ full_name: user.full_name ?? '', email: user.email ?? '', password: '' });
+    setEditError(null);
+  };
+
+  const cancelUserEdit = () => {
+    setEditingUserId(null);
+    setEditForm({ full_name: '', email: '', password: '' });
+    setSavingUserId(null);
+    setEditError(null);
+  };
+
+  const handleSaveUser = async () => {
+    if (!editingUserId) return;
+    const trimmedName = editForm.full_name.trim();
+    const trimmedEmail = editForm.email.trim().toLowerCase();
+    const trimmedPassword = editForm.password.trim();
+
+    if (!trimmedName) {
+      setEditError('Zadejte prosím jméno.');
+      return;
+    }
+
+    if (!trimmedEmail || !trimmedEmail.includes('@')) {
+      setEditError('Zadejte prosím platný e-mail.');
+      return;
+    }
+
+    if (trimmedPassword && trimmedPassword.length < 8) {
+      setEditError('Heslo musí mít alespoň 8 znaků.');
+      return;
+    }
+
+    setSavingUserId(editingUserId);
+    setEditError(null);
+
+    const { error } = await supabase.rpc('admin_update_user', {
+      p_user_id: editingUserId,
+      p_email: trimmedEmail,
+      p_full_name: trimmedName,
+      p_password: trimmedPassword ? trimmedPassword : null,
+    });
+
+    if (error) {
+      // Chybu zobrazíme uživateli, aby hned věděl, co se stalo.
+      setEditError(error.message || 'Uložení se nezdařilo. Zkuste to prosím znovu.');
+      setSavingUserId(null);
+      return;
+    }
+
+    await loadData();
+    cancelUserEdit();
+  };
 
   const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -462,7 +521,7 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[2000] p-4">
       <div className="bg-white/95 dark:bg-slate-900/95 border border-[#f05a28]/30 rounded-2xl shadow-2xl shadow-[#f05a28]/10 max-w-4xl w-full max-h-[80vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-[#f05a28]/20 dark:border-[#f05a28]/15 bg-white/40 dark:bg-slate-900/40 rounded-t-2xl">
           <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
@@ -546,43 +605,115 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
             <div className="space-y-4">
               {/* Hint odstraněn – žádné seedování uživatelů z UI */}
               {/* Demo sdílení odstraněno */}
-              {users.map(user => (
-                <div
-                  key={user.id}
-                  className="flex items-center justify-between p-4 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50 shadow-sm"
-                >
-                  <div>
-                    <p className="font-medium text-slate-900 dark:text-white">
-                      {user.full_name}
-                    </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                      {user.email}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={() => {
-                        localStorage.setItem('impersonateUserId', user.id);
-                        window.location.reload();
-                      }}
-                      className="px-3 py-1 rounded text-sm font-medium border border-[#f05a28]/25 text-[#f05a28] dark:text-[#ff8b5c] hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
-                      title="Náhled jako tento uživatel"
-                    >
-                      Náhled
-                    </button>
-                    <button
-                      onClick={() => handleToggleRole(user.id, user.role)}
-                      className={`px-3 py-1 rounded text-sm font-medium transition ${
-                        user.role === 'admin'
-                          ? 'border border-[#f05a28]/30 bg-[#f05a28]/15 dark:bg-[#f05a28]/20 text-[#f05a28] dark:text-[#ff8b5c]'
-                          : 'border border-[#f05a28]/20 text-slate-700 dark:text-slate-200 hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20'
-                      }`}
-                    >
-                      {user.role === 'admin' ? 'Admin' : 'Uživatel'}
-                    </button>
-                  </div>
+              {editError && (
+                <div className="p-3 rounded-xl border border-red-300 bg-red-50 text-sm text-red-600 dark:border-red-500/60 dark:bg-red-900/20 dark:text-red-300">
+                  {editError}
                 </div>
-              ))}
+              )}
+
+              {users.map(user => {
+                const isEditing = editingUserId === user.id;
+                return (
+                  <div
+                    key={user.id}
+                    className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 p-4 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50 shadow-sm"
+                  >
+                    <div className="flex-1 space-y-2">
+                      {isEditing ? (
+                        <>
+                          <input
+                            value={editForm.full_name}
+                            onChange={(event) => setEditForm((prev) => ({ ...prev, full_name: event.target.value }))}
+                            className="w-full px-3 py-2 rounded-lg border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/40"
+                            placeholder="Celé jméno"
+                            aria-label="Celé jméno uživatele"
+                          />
+                          <input
+                            value={editForm.email}
+                            onChange={(event) => setEditForm((prev) => ({ ...prev, email: event.target.value }))}
+                            className="w-full px-3 py-2 rounded-lg border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/40"
+                            placeholder="E-mail"
+                            aria-label="E-mail uživatele"
+                          />
+                          <input
+                            value={editForm.password}
+                            onChange={(event) => setEditForm((prev) => ({ ...prev, password: event.target.value }))}
+                            className="w-full px-3 py-2 rounded-lg border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/40"
+                            placeholder="Nové heslo (nepovinné)"
+                            aria-label="Nové heslo"
+                            type="password"
+                            autoComplete="new-password"
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-medium text-slate-900 dark:text-white">
+                            {user.full_name}
+                          </p>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">
+                            {user.email}
+                          </p>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 md:gap-3">
+                      {isEditing ? (
+                        <>
+                          <button
+                            onClick={handleSaveUser}
+                            disabled={savingUserId === user.id}
+                            className={`px-3 py-1.5 rounded text-sm font-medium transition ${
+                              savingUserId === user.id
+                                ? 'bg-white/60 border border-[#f05a28]/20 text-slate-400 cursor-not-allowed'
+                                : 'bg-[#f05a28] hover:bg-[#ff7846] text-white shadow'
+                            }`}
+                          >
+                            Uložit
+                          </button>
+                          <button
+                            onClick={cancelUserEdit}
+                            className="px-3 py-1.5 rounded text-sm font-medium border border-[#f05a28]/25 text-[#f05a28] dark:text-[#ff8b5c] hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
+                          >
+                            Zrušit
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => {
+                              localStorage.setItem('impersonateUserId', user.id);
+                              window.location.reload();
+                            }}
+                            className="px-3 py-1 rounded text-sm font-medium border border-[#f05a28]/25 text-[#f05a28] dark:text-[#ff8b5c] hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
+                            title="Náhled jako tento uživatel"
+                          >
+                            Náhled
+                          </button>
+                          <button
+                            onClick={() => startUserEdit(user)}
+                            className="px-3 py-1 rounded text-sm font-medium border border-[#f05a28]/25 text-slate-700 dark:text-slate-200 hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition flex items-center gap-1"
+                            title="Upravit jméno nebo resetovat heslo"
+                          >
+                            <PenSquare className="w-4 h-4" aria-hidden="true" />
+                            <span>Upravit</span>
+                          </button>
+                          <button
+                            onClick={() => handleToggleRole(user.id, user.role)}
+                            className={`px-3 py-1 rounded text-sm font-medium transition ${
+                              user.role === 'admin'
+                                ? 'border border-[#f05a28]/30 bg-[#f05a28]/15 dark:bg-[#f05a28]/20 text-[#f05a28] dark:text-[#ff8b5c]'
+                                : 'border border-[#f05a28]/20 text-slate-700 dark:text-slate-200 hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20'
+                            }`}
+                          >
+                            {user.role === 'admin' ? 'Admin' : 'Uživatel'}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -756,83 +887,87 @@ export const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                 </form>
               )}
 
-              {groups.map(group => (
-                <div
-                  key={group.id}
-                  className="flex items-center justify-between p-4 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50"
-                >
-                  <div className="flex items-center space-x-3">
-                    <Users className="w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]" />
-                    <p className="font-medium text-slate-900 dark:text-white">
-                      {group.name}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={async () => {
-                        const newExpanded = expandedGroupId === group.id ? null : group.id;
-                        setExpandedGroupId(newExpanded);
-                        if (newExpanded) await loadGroupMembers(group.id);
-                      }}
-                      className="px-3 py-1 rounded-xl border border-[#f05a28]/25 bg-white/60 dark:bg-slate-900/40 text-slate-700 dark:text-slate-200 text-sm hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
-                    >
-                      Členové
-                    </button>
-                    <button
-                      onClick={() => handleDeleteGroup(group.id)}
-                      className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition text-red-600 dark:text-red-400"
-                      title="Smazat skupinu"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              {expandedGroupId && (
-                <div className="p-4 rounded-xl bg-white/85 dark:bg-slate-900/60 border border-[#f05a28]/20">
-                  <h4 className="font-medium text-slate-900 dark:text-white mb-3">Správa členů</h4>
-                  <div className="space-y-2 mb-4">
-                    {(groupMembers[expandedGroupId] || []).map((uid) => {
-                      const u = users.find(us => us.id === uid);
-                      if (!u) return null;
-                      return (
-                        <div key={uid} className="flex items-center justify-between p-2 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50">
-                          <span className="text-sm text-slate-800 dark:text-slate-200">{u.full_name} ({u.email})</span>
-                          <button
-                            onClick={() => handleRemoveMember(expandedGroupId, uid)}
-                            className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
-                            title="Odebrat člena"
+              {groups.map(group => {
+                const isExpanded = expandedGroupId === group.id;
+                return (
+                  <div
+                    key={group.id}
+                    className="flex flex-col p-4 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <Users className="w-5 h-5 text-[#f05a28] dark:text-[#ff8b5c]" />
+                        <p className="font-medium text-slate-900 dark:text-white">
+                          {group.name}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={async () => {
+                            const newExpanded = expandedGroupId === group.id ? null : group.id;
+                            setExpandedGroupId(newExpanded);
+                            if (newExpanded) await loadGroupMembers(group.id);
+                          }}
+                          className="px-3 py-1 rounded-xl border border-[#f05a28]/25 bg-white/60 dark:bg-slate-900/40 text-slate-700 dark:text-slate-200 text-sm hover:bg-[#f05a28]/10 dark:hover:bg-[#f05a28]/20 transition"
+                        >
+                          {isExpanded ? 'Zavřít' : 'Členové'}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteGroup(group.id)}
+                          className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition text-red-600 dark:text-red-400"
+                          title="Smazat skupinu"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    {isExpanded && (
+                      <div className="mt-4 pt-4 border-t border-[#f05a28]/20">
+                        <h4 className="font-medium text-slate-900 dark:text-white mb-3">Správa členů</h4>
+                        <div className="space-y-2 mb-4">
+                          {(groupMembers[expandedGroupId] || []).map((uid) => {
+                            const u = users.find(us => us.id === uid);
+                            if (!u) return null;
+                            return (
+                              <div key={uid} className="flex items-center justify-between p-2 rounded-xl border border-[#f05a28]/15 bg-white/70 dark:bg-slate-900/50">
+                                <span className="text-sm text-slate-800 dark:text-slate-200">{u.full_name} ({u.email})</span>
+                                <button
+                                  onClick={() => handleRemoveMember(expandedGroupId, uid)}
+                                  className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
+                                  title="Odebrat člena"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={addingMemberUserId}
+                            onChange={(e) => setAddingMemberUserId(e.target.value)}
+                            className="flex-1 px-3 py-2 rounded-xl border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/50"
+                            aria-label="Vyberte uživatele pro přidání do skupiny"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <option value="">Vyberte uživatele</option>
+                            {users
+                              .filter(u => !(groupMembers[expandedGroupId] || []).includes(u.id))
+                              .map(u => (
+                                <option key={u.id} value={u.id}>{u.full_name} ({u.email})</option>
+                              ))}
+                          </select>
+                          <button
+                            onClick={() => handleAddMember(expandedGroupId)}
+                            className="px-3 py-2 rounded-xl bg-[#f05a28] hover:bg-[#ff7846] text-white text-sm shadow transition"
+                          >
+                            Přidat
                           </button>
                         </div>
-                      );
-                    })}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={addingMemberUserId}
-                      onChange={(e) => setAddingMemberUserId(e.target.value)}
-                      className="flex-1 px-3 py-2 rounded-xl border border-[#f05a28]/30 bg-white/90 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f05a28]/50"
-                      aria-label="Vyberte uživatele pro přidání do skupiny"
-                    >
-                      <option value="">Vyberte uživatele</option>
-                      {users
-                        .filter(u => !(groupMembers[expandedGroupId] || []).includes(u.id))
-                        .map(u => (
-                          <option key={u.id} value={u.id}>{u.full_name} ({u.email})</option>
-                        ))}
-                    </select>
-                    <button
-                      onClick={() => handleAddMember(expandedGroupId)}
-                      className="px-3 py-2 rounded-xl bg-[#f05a28] hover:bg-[#ff7846] text-white text-sm shadow transition"
-                    >
-                      Přidat
-                    </button>
-                  </div>
-                </div>
-              )}
+                );
+              })}
             </div>
           )}
 

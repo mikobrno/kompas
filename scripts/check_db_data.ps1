@@ -1,8 +1,27 @@
+#Requires -Version 5.1
+
+param(
+  [string]$ServiceRoleKey
+)
+
 $Url = "https://lobtcrdpwbfutdbmslsx.supabase.co/rest/v1"
-$ApiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvYnRjcmRwd2JmdXRkYm1zbHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1MDY5ODEsImV4cCI6MjA3NzA4Mjk4MX0.mRgYiy0tLo7SIPzgPe-HMx1o3X-hFWmt2nQ5r53Rg-A"
+
+if (-not $ServiceRoleKey) {
+  $ServiceRoleKey = $env:SUPABASE_SERVICE_ROLE_KEY
+}
+
+if (-not $ServiceRoleKey) {
+  $ServiceRoleKey = Read-Host -Prompt "Enter SUPABASE_SERVICE_ROLE_KEY"
+}
+
+if (-not $ServiceRoleKey) {
+  Write-Error "Service role key is required to bypass RLS and inspect data."
+  exit 1
+}
+
 $Headers = @{
-  apikey = $ApiKey
-  Authorization = "Bearer $ApiKey"
+  apikey = $ServiceRoleKey
+  Authorization = "Bearer $ServiceRoleKey"
 }
 
 Write-Output "=== Checking users table ==="

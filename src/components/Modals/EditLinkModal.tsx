@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import SearchableSelect from '../Inputs/SearchableSelect';
@@ -58,7 +59,7 @@ export const EditLinkModal = ({ isOpen, linkId, onClose, onSuccess }: EditLinkMo
     setLoading(true);
 
     // If category changed, place link at end of target category
-  const targetCategoryId = categoryId;
+    const targetCategoryId = categoryId;
     if (!targetCategoryId) {
       setLoading(false);
       return;
@@ -116,8 +117,10 @@ export const EditLinkModal = ({ isOpen, linkId, onClose, onSuccess }: EditLinkMo
     onSuccess();
   };
 
-  return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+  if (!isOpen) return null;
+
+  const dialogContent = (
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[2000] p-4">
       <div className="w-full max-w-xl rounded-2xl border border-[#f05a28]/30 bg-white/95 dark:bg-slate-900/95 shadow-2xl shadow-[#f05a28]/10">
         <div className="flex items-center justify-between p-6 border-b border-[#f05a28]/20 dark:border-[#f05a28]/15 bg-white/30 dark:bg-slate-900/40 rounded-t-2xl">
           <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
@@ -215,4 +218,6 @@ export const EditLinkModal = ({ isOpen, linkId, onClose, onSuccess }: EditLinkMo
       </div>
     </div>
   );
+
+  return createPortal(dialogContent, document.body);
 };

@@ -165,7 +165,7 @@ export const ShareTagModal = ({ isOpen, tagId, tagName, onClose, onSaved }: Shar
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[2000] p-4">
       <div className="bg-white/95 dark:bg-slate-900/95 rounded-2xl border border-[#f05a28]/30 shadow-2xl shadow-[#f05a28]/10 max-w-2xl w-full max-h-[80vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-[#f05a28]/20 dark:border-[#f05a28]/15 bg-white/30 dark:bg-slate-900/40 rounded-t-2xl">
           <div className="flex items-center space-x-3">

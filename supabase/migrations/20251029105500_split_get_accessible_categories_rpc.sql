@@ -27,7 +27,7 @@ BEGIN
 
   RETURN QUERY
   WITH user_groups AS (
-    SELECT group_id FROM group_members WHERE user_id = effective_user
+    SELECT group_id FROM group_members WHERE user_id = target_user
   ),
   link_shared AS (
     SELECT
@@ -43,7 +43,7 @@ BEGIN
     JOIN links l ON l.category_id = c.id
     JOIN link_shares ls ON ls.link_id = l.id
     WHERE (
-  ls.shared_with_user_id = effective_user
+  ls.shared_with_user_id = target_user
   OR ls.shared_with_group_id IN (SELECT group_id FROM user_groups)
     )
       AND c.is_archived = false
@@ -65,7 +65,7 @@ BEGIN
     JOIN link_tags lt ON lt.link_id = l.id
     JOIN tag_shares ts ON ts.tag_id = lt.tag_id AND ts.owner_id = c.owner_id
     WHERE (
-  ts.shared_with_user_id = effective_user
+  ts.shared_with_user_id = target_user
   OR ts.shared_with_group_id IN (SELECT group_id FROM user_groups)
     )
       AND c.is_archived = false
@@ -84,7 +84,7 @@ BEGIN
            c.color_hex,
            1 AS priority
     FROM categories c
-  WHERE c.owner_id = effective_user
+  WHERE c.owner_id = target_user
       AND c.is_archived = false
 
     UNION ALL
@@ -102,7 +102,7 @@ BEGIN
     FROM categories c
     JOIN category_shares cs ON cs.category_id = c.id
     WHERE (
-  cs.shared_with_user_id = effective_user
+  cs.shared_with_user_id = target_user
   OR cs.shared_with_group_id IN (SELECT group_id FROM user_groups)
     )
       AND c.is_archived = false
