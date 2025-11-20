@@ -481,8 +481,6 @@ export const CategoryCard = ({
             >
               <a
                 href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="flex items-center space-x-2"
               >
                 {(() => {
@@ -670,7 +668,7 @@ export const CategoryCard = ({
                   style={subtleBorderStyle}
                 >
                   <div className="flex items-center justify-between">
-                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="truncate text-slate-700 dark:text-slate-300 font-medium text-sm">
+                    <a href={link.url} className="truncate text-slate-700 dark:text-slate-300 font-medium text-sm">
                       {link.display_name}
                     </a>
                     {canManageLinks && (

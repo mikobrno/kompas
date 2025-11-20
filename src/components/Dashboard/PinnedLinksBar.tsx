@@ -136,8 +136,6 @@ export const PinnedLinksBar = () => {
               >
                 <a
                   href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="flex items-center space-x-3"
                 >
                   <div className="flex-shrink-0 w-6 h-6 rounded-lg overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center shadow-sm">
