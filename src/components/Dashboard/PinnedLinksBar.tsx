@@ -4,6 +4,7 @@ import { normalizePinnedRows } from '../../lib/normalize';
 import { Pin, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { extractHostname, iconHorseFavicon, googleFavicon, duckDuckGoFavicon } from '../../lib/favicons';
 
 interface PinnedLink {
   link_id: string;
@@ -139,18 +140,40 @@ export const PinnedLinksBar = () => {
                   className="flex items-center space-x-3"
                 >
                   <div className="flex-shrink-0 w-6 h-6 rounded-lg overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center shadow-sm">
-                    {link.favicon_url ? (
-                      <img
-                        src={link.favicon_url}
-                        alt=""
-                        className="w-5 h-5 object-contain"
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <div className="w-4 h-4 bg-gradient-to-br from-slate-300 to-slate-400 dark:from-slate-600 dark:to-slate-700 rounded" />
-                    )}
+                    {(() => {
+                      const host = extractHostname(link.url);
+                      const primary = host ? iconHorseFavicon(host) : link.favicon_url;
+
+                      if (!primary) {
+                        return <div className="w-4 h-4 bg-gradient-to-br from-slate-300 to-slate-400 dark:from-slate-600 dark:to-slate-700 rounded" />;
+                      }
+
+                      return (
+                        <img
+                          src={primary}
+                          alt=""
+                          className="w-5 h-5 object-contain"
+                          data-favicon-attempt="primary"
+                          onError={(e) => {
+                            const el = e.currentTarget as HTMLImageElement & { dataset: { faviconAttempt?: string } };
+                            const attempt = el.dataset.faviconAttempt || 'primary';
+
+                            if (attempt === 'primary' && host) {
+                              el.dataset.faviconAttempt = 'google';
+                              el.src = googleFavicon(host, 64);
+                            } else if (attempt === 'google' && host) {
+                              el.dataset.faviconAttempt = 'ddg';
+                              el.src = duckDuckGoFavicon(host);
+                            } else if (attempt === 'ddg' && link.favicon_url && link.favicon_url !== el.src) {
+                              el.dataset.faviconAttempt = 'db';
+                              el.src = link.favicon_url;
+                            } else {
+                              el.style.display = 'none';
+                            }
+                          }}
+                        />
+                      );
+                    })()}
                   </div>
                   <span className="text-sm font-semibold text-slate-900 dark:text-white tracking-tight">
                     {link.display_name}

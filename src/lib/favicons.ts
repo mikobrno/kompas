@@ -13,6 +13,10 @@ export const googleFavicon = (host: string, size: 64 | 32 | 16 = 32): string =>
 export const iconHorseFavicon = (host: string): string =>
   `https://icon.horse/icon/${encodeURIComponent(host)}`;
 
+export const duckDuckGoFavicon = (host: string): string =>
+  `https://icons.duckduckgo.com/ip3/${encodeURIComponent(host)}.ico`;
+
+
 /**
  * Returns a reasonable favicon URL for a given page URL.
  * Uses Icon Horse service by default, with Google s2 as a fallback.

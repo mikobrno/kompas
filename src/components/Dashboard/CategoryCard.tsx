@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DragEvent } from 'react';
 import { MoreVertical, Edit2, Trash2, Share2, Archive, Pin, Users, ChevronDown, Plus } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { extractHostname, iconHorseFavicon } from '../../lib/favicons';
+import { extractHostname, iconHorseFavicon, googleFavicon, duckDuckGoFavicon } from '../../lib/favicons';
 import { useAuth } from '../../contexts/AuthContext';
 import { normalizeHexColor, hexToRgba } from '../../lib/colors';
 import { createPortal } from 'react-dom';
@@ -485,9 +485,8 @@ export const CategoryCard = ({
               >
                 {(() => {
                   const host = extractHostname(link.url);
-                  // Prioritize icon.horse for reliability, use DB favicon as a fallback.
+                  // Start with icon.horse
                   const primary = host ? iconHorseFavicon(host) : link.favicon_url;
-                  const fallback = link.favicon_url && primary !== link.favicon_url ? link.favicon_url : null;
 
                   if (!primary) {
                     return <div className="w-6 h-6 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-600 dark:to-slate-700 rounded-lg flex-shrink-0 shadow-sm" />;
@@ -501,12 +500,18 @@ export const CategoryCard = ({
                         data-favicon-attempt="primary"
                         onError={(e) => {
                           const el = e.currentTarget as HTMLImageElement & { dataset: { faviconAttempt?: string } };
-                          // If icon.horse fails, try the fallback from DB if it exists and is different.
-                          if (el.dataset.faviconAttempt === 'primary' && fallback) {
-                            el.dataset.faviconAttempt = 'secondary';
-                            el.src = fallback;
+                          const attempt = el.dataset.faviconAttempt || 'primary';
+
+                          if (attempt === 'primary' && host) {
+                            el.dataset.faviconAttempt = 'google';
+                            el.src = googleFavicon(host, 64);
+                          } else if (attempt === 'google' && host) {
+                            el.dataset.faviconAttempt = 'ddg';
+                            el.src = duckDuckGoFavicon(host);
+                          } else if (attempt === 'ddg' && link.favicon_url && link.favicon_url !== el.src) {
+                            el.dataset.faviconAttempt = 'db';
+                            el.src = link.favicon_url;
                           } else {
-                            // If no fallback or fallback also fails, hide the image.
                             el.style.display = 'none';
                           }
                         }}
